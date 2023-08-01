@@ -1,0 +1,39 @@
+## @file
+# Instance of Memory Allocation Library in SEC phase.
+#
+# Copyright (c) 2023, Intel Corporation. All rights reserved.<BR>
+#
+#  SPDX-License-Identifier: BSD-2-Clause-Patent
+#
+#
+##
+
+[Defines]
+  INF_VERSION                    = 0x00010005
+  BASE_NAME                      = SecMemoryAllocationLib
+  FILE_GUID                      = 6ECB5519-0C38-474F-B01D-532327F3A869
+  MODULE_TYPE                    = BASE
+  VERSION_STRING                 = 1.0
+  LIBRARY_CLASS                  = MemoryAllocationLib|SEC
+  CONSTRUCTOR                    = SecMemoryAllocationLibConstructor
+
+#
+#  VALID_ARCHITECTURES           = X64
+#
+
+[Sources]
+  MemoryAllocationLib.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  OvmfPkg/OvmfPkg.dec
+
+
+[LibraryClasses]
+  DebugLib
+  BaseMemoryLib
+  PcdLib
+
+[FixedPcd]
+  gUefiOvmfPkgTokenSpaceGuid.PcdOvmfSecScratchMemoryBase
+  gUefiOvmfPkgTokenSpaceGuid.PcdOvmfSecScratchMemorySize
