@@ -79,3 +79,4 @@
   gEfiMdeModulePkgTokenSpaceGuid.PcdAcpiDefaultCreatorRevision              ## CONSUMES
   gUefiOvmfPkgTokenSpaceGuid.PcdVtpmSecureSessionInfoTableAddr
   gUefiOvmfPkgTokenSpaceGuid.PcdVtpmSecureSessionInfoTableSize
+  gUefiOvmfPkgTokenSpaceGuid.PcdOvmfWorkAreaBase

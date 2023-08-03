@@ -31,6 +31,7 @@
 #include <Ppi/MpInitLibDep.h>
 #include <Library/TdxHelperLib.h>
 #include <Library/CcProbeLib.h>
+#include <Library/VmmSpdmVTpmCommunicatorLib.h>
 #include "AmdSev.h"
 
 #define SEC_IDT_ENTRY_COUNT  34
@@ -760,6 +761,7 @@ SecCoreStartupWithStack (
 
  #if defined (TDX_GUEST_SUPPORTED)
   if (CcProbe () == CcGuestTypeIntelTdx) {
+
     //
     // From the security perspective all the external input should be measured before
     // it is consumed. TdHob and Configuration FV (Cfv) image are passed from VMM
@@ -846,6 +848,30 @@ SecCoreStartupWithStack (
   }
 
   ProcessLibraryConstructorList (NULL, NULL);
+
+ #if defined (TDX_GUEST_SUPPORTED)
+  if (CcProbe () == CcGuestTypeIntelTdx) {
+    //
+    // if vTPM is supported, we shall use vTPM instead of RTMR.
+    //
+    if (!EFI_ERROR (TdxHelperInitSharedBuffer ())) {
+      if (!EFI_ERROR (VmmSpdmVTpmIsSupported ())) {
+        if (!EFI_ERROR (VmmSpdmVTpmConnect ())) {
+          // TODO
+          // Measure TdHob and Cfv to PCR[0]
+          DEBUG ((DEBUG_INFO, "vTPM-TD is connected.\n"));
+        } else {
+          ASSERT (FALSE);
+        }
+      } else {
+        ASSERT (FALSE);
+      }
+
+      TdxHelperDropSharedBuffer ();
+    }
+  }
+
+ #endif
 
   if (!SevEsIsEnabled ()) {
     //

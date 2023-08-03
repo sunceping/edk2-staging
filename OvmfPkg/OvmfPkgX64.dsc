@@ -309,7 +309,8 @@
   HobLib|MdePkg/Library/PeiHobLib/PeiHobLib.inf
   PeiServicesLib|MdePkg/Library/PeiServicesLib/PeiServicesLib.inf
   PeiServicesTablePointerLib|MdePkg/Library/PeiServicesTablePointerLibIdt/PeiServicesTablePointerLibIdt.inf
-  MemoryAllocationLib|MdePkg/Library/PeiMemoryAllocationLib/PeiMemoryAllocationLib.inf
+  #MemoryAllocationLib|MdePkg/Library/PeiMemoryAllocationLib/PeiMemoryAllocationLib.inf
+  MemoryAllocationLib|OvmfPkg/Library/SecMemoryAllocationLib/SecMemoryAllocationLib.inf
 !if $(TOOL_CHAIN_TAG) == "XCODE5"
   CpuExceptionHandlerLib|UefiCpuPkg/Library/CpuExceptionHandlerLib/Xcode5SecPeiCpuExceptionHandlerLib.inf
 !else
@@ -741,7 +742,11 @@
     <LibraryClasses>
       NULL|MdeModulePkg/Library/LzmaCustomDecompressLib/LzmaCustomDecompressLib.inf
       NULL|OvmfPkg/IntelTdx/TdxHelperLib/SecTdxHelperLib.inf
-      BaseCryptLib|CryptoPkg/Library/BaseCryptLib/SecCryptLib.inf
+      #BaseCryptLib|CryptoPkg/Library/BaseCryptLib/SecCryptLib.inf
+      BaseCryptLib|CryptoPkg/Library/BaseCryptLib/PeiCryptLib.inf
+      MemEncryptTdxLib|OvmfPkg/Library/BaseMemEncryptTdxLib/SecBaseMemEncryptTdxLib.inf
+      !include VmmSpdmLibs.dsc.inc
+      VmmSpdmVTpmCommunicatorLib|OvmfPkg/Library/VmmSpdmVTpm/VmmSpdmVTpmCommunicatorLibSec.inf
   }
 
   #

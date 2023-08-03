@@ -694,6 +694,10 @@ VmmSpdmVTpmInitSpdmContext (
     DEBUG ((DEBUG_ERROR, "InitialVtpmTdCertChain failed with %r\n", Status));
     CertChainSuccess =  FALSE;
     goto ClearCertChain;
+  } else {
+    DEBUG ((DEBUG_INFO, "CertChain is created. size=%d\n", CertChainSize));
+    VmmSpdmVTpmDumpHex (CertChain, CertChainSize);
+    DEBUG ((DEBUG_INFO, "--------------------------------------------------\n"));
   }
 
   ZeroMem (&Parameter, sizeof (Parameter));
@@ -712,9 +716,9 @@ VmmSpdmVTpmInitSpdmContext (
   }
 
 ClearCertChain:
-  if (CertChain) {
-    FreePages(CertChain,Pages);
-  }
+  // if (CertChain) {
+  //   FreePages(CertChain,Pages);
+  // }
 
   if (CertChainSuccess == FALSE){
     return EFI_ABORTED;
@@ -1060,7 +1064,7 @@ DoStartSession (
                              MeasurementHash
                              );
   //After SpdmStartSession, tdvf should clear the key pair info.
-  ClearKeyPairInGuidHob();
+  ClearKeyPair();
 
   return Status;
 }

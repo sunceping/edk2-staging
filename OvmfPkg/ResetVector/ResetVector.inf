@@ -64,5 +64,5 @@
   gUefiOvmfPkgTokenSpaceGuid.PcdQemuHashTableSize
   gUefiOvmfPkgTokenSpaceGuid.PcdOvmfSnpSecretsBase
   gUefiOvmfPkgTokenSpaceGuid.PcdOvmfSnpSecretsSize
-  gUefiOvmfPkgTokenSpaceGuid.PcdOvmfTdxSharedMemoryBase
-  gUefiOvmfPkgTokenSpaceGuid.PcdOvmfTdxSharedMemorySize
+  gUefiOvmfPkgTokenSpaceGuid.PcdOvmfSecScratchMemoryBase
+  gUefiOvmfPkgTokenSpaceGuid.PcdOvmfSecScratchMemorySize

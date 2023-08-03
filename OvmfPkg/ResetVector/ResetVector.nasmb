@@ -117,8 +117,8 @@
   %define TDX_INIT_MEMORY_BASE      FixedPcdGet32 (PcdOvmfWorkAreaBase)
   %define TDX_INIT_MEMORY_SIZE      (FixedPcdGet32 (PcdOvmfWorkAreaSize) + FixedPcdGet32 (PcdOvmfSecGhcbBackupSize))
 
-  %define TDX_SHARED_MEMORY_BASE    FixedPcdGet32 (PcdOvmfTdxSharedMemoryBase)
-  %define TDX_SHARED_MEMORY_SIZE    FixedPcdGet32 (PcdOvmfTdxSharedMemorySize)
+  %define TDX_SCRATCH_MEMORY_BASE   FixedPcdGet32 (PcdOvmfSecScratchMemoryBase)
+  %define TDX_SCRATCH_MEMORY_SIZE   FixedPcdGet32 (PcdOvmfSecScratchMemorySize)
 
   %define OVMF_PAGE_TABLE_BASE      FixedPcdGet32 (PcdOvmfSecPageTablesBase)
   %define OVMF_PAGE_TABLE_SIZE      FixedPcdGet32 (PcdOvmfSecPageTablesSize)

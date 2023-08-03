@@ -857,6 +857,6 @@ SecMemoryAllocationLibConstructor (
   VOID
   )
 {
-  InitializeScratchMemory((UINT8 *)(UINTN)(FixedPcdGet32(PcdOvmfSecScratchMemoryBase) + 0x400), (UINTN)(FixedPcdGet32(PcdOvmfSecScratchMemorySize) - 0x400));
+  InitializeScratchMemory((UINT8 *)(UINTN)(FixedPcdGet32(PcdOvmfSecScratchMemoryBase) + 0x400), SIZE_4MB - 0x400);
   return EFI_SUCCESS;
 }

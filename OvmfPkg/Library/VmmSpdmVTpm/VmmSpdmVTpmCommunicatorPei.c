@@ -23,104 +23,105 @@
 #include <Library/BaseCryptLib.h>
 #include <IndustryStandard/Tdx.h>
 #include <Library/MemEncryptTdxLib.h>
+#include "WorkArea.h"
 
 /**
  * Calculate the buffers' size of a VmmSpdmContext.
  */
-STATIC
-UINTN
-EFIAPI
-VmmSpmdCalculateSize (
-  VMM_SPDM_CONTEXT_BUFFERS_SIZE  *ContextBuffersSize
-  )
-{
-  UINTN  SpdmContextSize;
+// STATIC
+// UINTN
+// EFIAPI
+// VmmSpmdCalculateSize (
+//   VMM_SPDM_CONTEXT_BUFFERS_SIZE  *ContextBuffersSize
+//   )
+// {
+//   UINTN  SpdmContextSize;
 
-  if (ContextBuffersSize == NULL) {
-    return EFI_INVALID_PARAMETER;
-  }
+//   if (ContextBuffersSize == NULL) {
+//     return EFI_INVALID_PARAMETER;
+//   }
 
-  SpdmContextSize = SpdmGetContextSize ();
+//   SpdmContextSize = SpdmGetContextSize ();
 
-  ContextBuffersSize->SpdmContextSize       = SpdmContextSize;
-  ContextBuffersSize->ScratchBufferSize     = SpdmGetSizeofRequiredScratchBuffer (NULL);
-  ContextBuffersSize->SendReceiveBufferSize = 0x1264; // TODO find the macro
+//   ContextBuffersSize->SpdmContextSize       = SpdmContextSize;
+//   ContextBuffersSize->ScratchBufferSize     = SpdmGetSizeofRequiredScratchBuffer (NULL);
+//   ContextBuffersSize->SendReceiveBufferSize = 0x1264; // TODO find the macro
 
-  return EFI_SUCCESS;
-}
+//   return EFI_SUCCESS;
+// }
 
-STATIC
-EFI_STATUS
-FreeMemoryForVmmSpdmContext (
-  VMM_SPDM_CONTEXT  *Context,
-  UINT32            Pages
-  )
-{
-  if (Context == NULL) {
-    return EFI_INVALID_PARAMETER;
-  }
+// STATIC
+// EFI_STATUS
+// FreeMemoryForVmmSpdmContext (
+//   VMM_SPDM_CONTEXT  *Context,
+//   UINT32            Pages
+//   )
+// {
+//   if (Context == NULL) {
+//     return EFI_INVALID_PARAMETER;
+//   }
 
-  FreePages (Context, Pages);
+//   FreePages (Context, Pages);
 
-  return EFI_SUCCESS;
-}
+//   return EFI_SUCCESS;
+// }
 
-STATIC
-EFI_STATUS
-AllocateMemoryForVmmSpdmContext (
-  VOID    **ppContext,
-  UINT32  *Pages
-  )
-{
-  VMM_SPDM_CONTEXT               *Context;
-  VMM_SPDM_CONTEXT_BUFFERS_SIZE  BuffersSize = { 0 };
-  UINT32                         Size;
-  UINT32                         TotalPages;
-  UINT8                          *Ptr;
+// STATIC
+// EFI_STATUS
+// AllocateMemoryForVmmSpdmContext (
+//   VOID    **ppContext,
+//   UINT32  *Pages
+//   )
+// {
+//   VMM_SPDM_CONTEXT               *Context;
+//   VMM_SPDM_CONTEXT_BUFFERS_SIZE  BuffersSize = { 0 };
+//   UINT32                         Size;
+//   UINT32                         TotalPages;
+//   UINT8                          *Ptr;
 
-  VmmSpmdCalculateSize (&BuffersSize);
-  TotalPages  = EFI_SIZE_TO_PAGES (sizeof (VMM_SPDM_CONTEXT));
-  TotalPages += EFI_SIZE_TO_PAGES (BuffersSize.SpdmContextSize);
-  TotalPages += EFI_SIZE_TO_PAGES (BuffersSize.ScratchBufferSize);
-  TotalPages += EFI_SIZE_TO_PAGES (BuffersSize.SendReceiveBufferSize);
+//   VmmSpmdCalculateSize (&BuffersSize);
+//   TotalPages  = EFI_SIZE_TO_PAGES (sizeof (VMM_SPDM_CONTEXT));
+//   TotalPages += EFI_SIZE_TO_PAGES (BuffersSize.SpdmContextSize);
+//   TotalPages += EFI_SIZE_TO_PAGES (BuffersSize.ScratchBufferSize);
+//   TotalPages += EFI_SIZE_TO_PAGES (BuffersSize.SendReceiveBufferSize);
 
-  *ppContext = AllocatePages (TotalPages);
-  if (*ppContext == NULL) {
-    return EFI_OUT_OF_RESOURCES;
-  }
+//   *ppContext = AllocatePages (TotalPages);
+//   if (*ppContext == NULL) {
+//     return EFI_OUT_OF_RESOURCES;
+//   }
 
-  *Pages  = TotalPages;
-  Context = (VMM_SPDM_CONTEXT *)*ppContext;
-  ZeroMem (Context, EFI_PAGES_TO_SIZE (TotalPages));
+//   *Pages  = TotalPages;
+//   Context = (VMM_SPDM_CONTEXT *)*ppContext;
+//   ZeroMem (Context, EFI_PAGES_TO_SIZE (TotalPages));
 
-  // Context
-  Ptr  = (UINT8 *)(UINTN)Context;
-  Size = ALIGN_VALUE (sizeof (VMM_SPDM_CONTEXT), SIZE_4KB);
+//   // Context
+//   Ptr  = (UINT8 *)(UINTN)Context;
+//   Size = ALIGN_VALUE (sizeof (VMM_SPDM_CONTEXT), SIZE_4KB);
 
-  // SpdmContext
-  Ptr                 += Size;
-  Context->SpdmContext = Ptr;
-  Size                 = ALIGN_VALUE (BuffersSize.SpdmContextSize, SIZE_4KB);
+//   // SpdmContext
+//   Ptr                 += Size;
+//   Context->SpdmContext = Ptr;
+//   Size                 = ALIGN_VALUE (BuffersSize.SpdmContextSize, SIZE_4KB);
 
-  // ScratchBuffer
-  Ptr                       += Size;
-  Context->ScratchBuffer     = Ptr;
-  Size                       = ALIGN_VALUE (BuffersSize.ScratchBufferSize, SIZE_4KB);
-  Context->ScratchBufferSize = Size;
+//   // ScratchBuffer
+//   Ptr                       += Size;
+//   Context->ScratchBuffer     = Ptr;
+//   Size                       = ALIGN_VALUE (BuffersSize.ScratchBufferSize, SIZE_4KB);
+//   Context->ScratchBufferSize = Size;
 
-  // SendReceiveBuffer
-  Ptr                           += Size;
-  Context->SendReceiveBuffer     = Ptr;
-  Size                           = ALIGN_VALUE (BuffersSize.SendReceiveBufferSize, SIZE_4KB);
-  Context->SendReceiveBufferSize = Size;
+//   // SendReceiveBuffer
+//   Ptr                           += Size;
+//   Context->SendReceiveBuffer     = Ptr;
+//   Size                           = ALIGN_VALUE (BuffersSize.SendReceiveBufferSize, SIZE_4KB);
+//   Context->SendReceiveBufferSize = Size;
 
-  Ptr += Size;
-  if (((UINTN)Ptr - (UINTN)Context) != EFI_PAGES_TO_SIZE (TotalPages)) {
-    return EFI_OUT_OF_RESOURCES;
-  }
+//   Ptr += Size;
+//   if (((UINTN)Ptr - (UINTN)Context) != EFI_PAGES_TO_SIZE (TotalPages)) {
+//     return EFI_OUT_OF_RESOURCES;
+//   }
 
-  return EFI_SUCCESS;
-}
+//   return EFI_SUCCESS;
+// }
 
 /**
  * Export SecuredSpdmSessionInfo and save it in a GuidHob.
@@ -136,67 +137,69 @@ AllocateMemoryForVmmSpdmContext (
  * @return EFI_SUCCESS     The secure session info is exported successfully
  * @return Other           Some error occurs when executing this export.
  */
-STATIC
-EFI_STATUS
-ExportSecureSpdmSessionInfos (
-  VMM_SPDM_CONTEXT  *Context
-  )
-{
-  UINTN                           SessionKeysSize;
-  VOID                            *SecureMessageContext;
-  SPDM_AEAD_SESSION_KEYS          SessionKeys;
-  UINT16                          DataLength;
-  VOID                            *GuidHobRawData;
-  VTPM_SECURE_SESSION_INFO_TABLE  *InfoTable;
+// STATIC
+// EFI_STATUS
+// ExportSecureSpdmSessionInfos (
+//   VMM_SPDM_CONTEXT  *Context
+//   )
+// {
+//   UINTN                           SessionKeysSize;
+//   VOID                            *SecureMessageContext;
+//   SPDM_AEAD_SESSION_KEYS          SessionKeys;
+//   UINT16                          DataLength;
+//   VOID                            *GuidHobRawData;
+//   VTPM_SECURE_SESSION_INFO_TABLE  *InfoTable;
 
-  if ((Context == NULL)
-      || (Context->SessionId == 0)
-      || (Context->SpdmContext == NULL))
-  {
-    return EFI_INVALID_PARAMETER;
-  }
+//   if ((Context == NULL)
+//       || (Context->SessionId == 0)
+//       || (Context->SpdmContext == NULL))
+//   {
+//     return EFI_INVALID_PARAMETER;
+//   }
 
-  SecureMessageContext = SpdmGetSecuredMessageContextViaSessionId (Context->SpdmContext, Context->SessionId);
-  if (SecureMessageContext == NULL) {
-    return EFI_INVALID_PARAMETER;
-  }
+//   ASSERT (FALSE);
 
-  SessionKeysSize = sizeof (SPDM_AEAD_SESSION_KEYS);
-  ZeroMem (&SessionKeys, SessionKeysSize);
-  if (!SpdmSecuredMessageExportSessionKeys (SecureMessageContext, &SessionKeys, &SessionKeysSize)) {
-    return EFI_INVALID_PARAMETER;
-  }
+//   SecureMessageContext = SpdmGetSecuredMessageContextViaSessionId (Context->SpdmContext, Context->SessionId);
+//   if (SecureMessageContext == NULL) {
+//     return EFI_INVALID_PARAMETER;
+//   }
 
-  if ((SessionKeys.AeadKeySize != AEAD_AES_256_GCM_KEY_LEN) ||
-      (SessionKeys.AeadIvSize != AEAD_AES_256_GCM_IV_LEN))
-  {
-    return EFI_INVALID_PARAMETER;
-  }
+//   SessionKeysSize = sizeof (SPDM_AEAD_SESSION_KEYS);
+//   ZeroMem (&SessionKeys, SessionKeysSize);
+//   if (!SpdmSecuredMessageExportSessionKeys (SecureMessageContext, &SessionKeys, &SessionKeysSize)) {
+//     return EFI_INVALID_PARAMETER;
+//   }
 
-  //
-  // Create a Guid hob to save SecuredSpdmSessionInfo
-  //
-  DataLength = VTPM_SECURE_SESSION_INFO_TABLE_SIZE;
+//   if ((SessionKeys.AeadKeySize != AEAD_AES_256_GCM_KEY_LEN) ||
+//       (SessionKeys.AeadIvSize != AEAD_AES_256_GCM_IV_LEN))
+//   {
+//     return EFI_INVALID_PARAMETER;
+//   }
 
-  GuidHobRawData = BuildGuidHob (
-                                 &gEdkiiVTpmSecureSpdmSessionInfoHobGuid,
-                                 DataLength
-                                 );
+//   //
+//   // Create a Guid hob to save SecuredSpdmSessionInfo
+//   //
+//   DataLength = VTPM_SECURE_SESSION_INFO_TABLE_SIZE;
 
-  if (GuidHobRawData == NULL) {
-    DEBUG ((DEBUG_ERROR, "%a : BuildGuidHob failed \n", __FUNCTION__));
-    return EFI_OUT_OF_RESOURCES;
-  }
+//   GuidHobRawData = BuildGuidHob (
+//                                  &gEdkiiVTpmSecureSpdmSessionInfoHobGuid,
+//                                  DataLength
+//                                  );
 
-  InfoTable                          = (VTPM_SECURE_SESSION_INFO_TABLE *)GuidHobRawData;
-  InfoTable->SessionId               = Context->SessionId;
-  InfoTable->TransportBindingVersion = VTPM_SECURE_SESSION_TRANSPORT_BINDING_VERSION;
-  InfoTable->AEADAlgorithm           = AEAD_ALGORITHM_AES_256_GCM;
+//   if (GuidHobRawData == NULL) {
+//     DEBUG ((DEBUG_ERROR, "%a : BuildGuidHob failed \n", __FUNCTION__));
+//     return EFI_OUT_OF_RESOURCES;
+//   }
 
-  CopyMem (InfoTable + 1, &SessionKeys.keys, sizeof (SPDM_AEAD_AES_256_GCM_KEY_IV_INFO));
+//   InfoTable                          = (VTPM_SECURE_SESSION_INFO_TABLE *)GuidHobRawData;
+//   InfoTable->SessionId               = Context->SessionId;
+//   InfoTable->TransportBindingVersion = VTPM_SECURE_SESSION_TRANSPORT_BINDING_VERSION;
+//   InfoTable->AEADAlgorithm           = AEAD_ALGORITHM_AES_256_GCM;
 
-  return EFI_SUCCESS;
-}
+//   CopyMem (InfoTable + 1, &SessionKeys.keys, sizeof (SPDM_AEAD_AES_256_GCM_KEY_IV_INFO));
+
+//   return EFI_SUCCESS;
+// }
 
 /**
  * Disconnect from VmmSpdm responder.
@@ -231,27 +234,28 @@ VmmSpdmVTpmIsConnected (
   VOID
   )
 {
-  EFI_PEI_HOB_POINTERS            GuidHob;
-  UINT16                          HobLength;
+  // EFI_PEI_HOB_POINTERS            GuidHob;
+  // UINT16                          HobLength;
   VTPM_SECURE_SESSION_INFO_TABLE  *InfoTable;
 
   // SPDM_AEAD_AES_256_GCM_KEY_IV_INFO *KeyIvInfo;
 
   // Find gEdkiiVTpmSecureSpdmSessionInfoHobGuid
-  GuidHob.Guid = GetFirstGuidHob (&gEdkiiVTpmSecureSpdmSessionInfoHobGuid);
-  DEBUG ((DEBUG_INFO, ">> GuidHob.Guid = %p\n", GuidHob.Guid));
-  if (GuidHob.Guid == NULL) {
-    return EFI_NOT_FOUND;
-  }
+  // GuidHob.Guid = GetFirstGuidHob (&gEdkiiVTpmSecureSpdmSessionInfoHobGuid);
+  // DEBUG ((DEBUG_INFO, ">> GuidHob.Guid = %p\n", GuidHob.Guid));
+  // if (GuidHob.Guid == NULL) {
+  //   return EFI_NOT_FOUND;
+  // }
 
-  HobLength = sizeof (EFI_HOB_GUID_TYPE) + VTPM_SECURE_SESSION_INFO_TABLE_SIZE;
+  // HobLength = sizeof (EFI_HOB_GUID_TYPE) + VTPM_SECURE_SESSION_INFO_TABLE_SIZE;
 
-  if (GuidHob.Guid->Header.HobLength != HobLength) {
-    return EFI_INVALID_PARAMETER;
-  }
+  // if (GuidHob.Guid->Header.HobLength != HobLength) {
+  //   return EFI_INVALID_PARAMETER;
+  // }
 
-  InfoTable = (VTPM_SECURE_SESSION_INFO_TABLE *)(GuidHob.Guid + 1);
-  if (InfoTable->SessionId == 0) {
+  // InfoTable = (VTPM_SECURE_SESSION_INFO_TABLE *)(GuidHob.Guid + 1);
+  InfoTable = GetSpdmSecuredSessionInfo ();
+  if (InfoTable == NULL || InfoTable->SessionId == 0) {
     return EFI_NOT_STARTED;
   }
 
@@ -271,6 +275,9 @@ VmmSpdmVTpmConnect (
   VOID
   )
 {
+  return VmmSpdmVTpmIsConnected ();
+
+#if 0  
   VMM_SPDM_CONTEXT  *Context;
   UINT32            Pages;
   EFI_STATUS        Status;
@@ -380,6 +387,7 @@ CleanContext:
   }
 
   return Status;
+#endif  
 }
 
 /**
@@ -399,23 +407,38 @@ GetSpdmSecuredSessionInfo (
   VOID
   )
 {
-  EFI_PEI_HOB_POINTERS  GuidHob;
-  UINT16                HobLength;
+  // EFI_PEI_HOB_POINTERS  GuidHob;
+  // UINT16                HobLength;
 
-  GuidHob.Guid = GetFirstGuidHob (&gEdkiiVTpmSecureSpdmSessionInfoHobGuid);
-  if (GuidHob.Guid == NULL) {
-    DEBUG ((DEBUG_ERROR, "%a: The Guid HOB is not found \n", __FUNCTION__));
+  // GuidHob.Guid = GetFirstGuidHob (&gEdkiiVTpmSecureSpdmSessionInfoHobGuid);
+  // if (GuidHob.Guid == NULL) {
+  //   DEBUG ((DEBUG_ERROR, "%a: The Guid HOB is not found \n", __FUNCTION__));
+  //   return NULL;
+  // }
+
+  // HobLength = sizeof (EFI_HOB_GUID_TYPE) + VTPM_SECURE_SESSION_INFO_TABLE_SIZE;
+
+  // if (GuidHob.Guid->Header.HobLength != HobLength) {
+  //   DEBUG ((DEBUG_ERROR, "%a: The GuidHob.Guid->Header.HobLength is not equal HobLength, %x vs %x \n", __FUNCTION__, GuidHob.Guid->Header.HobLength, HobLength));
+  //   return NULL;
+  // }
+
+  // return (VTPM_SECURE_SESSION_INFO_TABLE *)(GuidHob.Guid + 1);
+  VTPM_SECURE_SESSION_INFO_TABLE  *InfoTable;
+  OVMF_WORK_AREA                  *WorkArea;
+
+  //
+  // Create a Guid hob to save SecuredSpdmSessionInfo
+  //
+  WorkArea = (OVMF_WORK_AREA *)FixedPcdGet32 (PcdOvmfWorkAreaBase);
+  if (WorkArea == NULL) {
+    ASSERT (FALSE);
     return NULL;
   }
 
-  HobLength = sizeof (EFI_HOB_GUID_TYPE) + VTPM_SECURE_SESSION_INFO_TABLE_SIZE;
+  InfoTable = (VTPM_SECURE_SESSION_INFO_TABLE *)(UINTN)WorkArea->TdxWorkArea.SecTdxWorkArea.SpdmSecureSessionInfo;
 
-  if (GuidHob.Guid->Header.HobLength != HobLength) {
-    DEBUG ((DEBUG_ERROR, "%a: The GuidHob.Guid->Header.HobLength is not equal HobLength, %x vs %x \n", __FUNCTION__, GuidHob.Guid->Header.HobLength, HobLength));
-    return NULL;
-  }
-
-  return (VTPM_SECURE_SESSION_INFO_TABLE *)(GuidHob.Guid + 1);
+  return InfoTable;
 }
 
 /**
@@ -563,4 +586,150 @@ VmmSpdmVTpmClearSharedBit (
 
   return Status;
 
+}
+
+/**
+ * Save the TD_REPORT data to the GUID HOB.
+ *
+ * @param  TdReport        A pointer to the TDREPORT data.
+ *
+ * @return EFI_SUCCESS    Save TD_REPORT data was successfully.
+ * @return Others         Some errors.
+*/
+EFI_STATUS
+SaveTdReport(
+  IN UINT8 *TdReport
+)
+{
+  VOID   *GuidHobRawData;
+  UINTN  DataLength;
+
+  EFI_PEI_HOB_POINTERS  GuidHob;
+
+  if (TdReport == NULL) {
+    return EFI_INVALID_PARAMETER;
+  }
+
+  GuidHob.Guid = GetFirstGuidHob (&gEdkiiTdReportInfoHobGuid);
+  if (GuidHob.Guid != NULL) {
+    DEBUG ((DEBUG_ERROR, "%a: The Guid HOB should be NULL \n", __FUNCTION__));
+    return EFI_UNSUPPORTED;
+  }
+
+  DataLength = sizeof (TDREPORT_STRUCT);
+
+  GuidHobRawData = BuildGuidHob (
+                                 &gEdkiiTdReportInfoHobGuid,
+                                 DataLength
+                                 );
+
+  if (GuidHobRawData == NULL) {
+    DEBUG ((DEBUG_ERROR, "%a : BuildGuidHob failed \n", __FUNCTION__));
+    return EFI_OUT_OF_RESOURCES;
+  }
+
+  CopyMem(GuidHobRawData,TdReport, sizeof (TDREPORT_STRUCT));
+
+  return EFI_SUCCESS;
+}
+
+/**
+ * Save the key pair to the GUID HOB.
+ *
+ * @param  PubKey          A pointer to the public key data.
+ * @param  PubKeySize      The size of the public key data.
+ * @param  PriKey          A pointer to the private key data.
+ * @param  PriKeySize      The size of the private key data.
+ *
+ * @return EFI_SUCCESS    Save key pair data was successfully.
+ * @return Others         Some errors.
+*/
+EFI_STATUS
+SaveCertEcP384KeyPair (
+  IN UINT8   *PubKey,
+  IN UINT32  PubKeySize,
+  IN UINT8   *PriKey,
+  IN UINT32  PriKeySize
+  )
+{
+  VOID   *GuidHobRawData;
+  UINTN  DataLength;
+  UINT8  *Ptr = NULL;
+
+  if ((PubKey == NULL) || (PubKeySize < 1)) {
+    return EFI_INVALID_PARAMETER;
+  }
+
+  if ((PriKey == NULL) || (PriKeySize < 1)) {
+    return EFI_INVALID_PARAMETER;
+  }
+
+  //
+  // Create a Guid hob to save the Key Pair info
+  //
+  DataLength = sizeof (VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO);
+  if ((PubKeySize + PriKeySize) > DataLength) {
+    DEBUG ((DEBUG_ERROR, "%a : The Key pair size should be equal to the DataLength \n", __FUNCTION__));
+    return EFI_OUT_OF_RESOURCES;
+  }
+
+  GuidHobRawData = BuildGuidHob (
+                                 &gEdkiiVTpmTdX509CertKeyInfoHobGuid,
+                                 DataLength
+                                 );
+
+  if (GuidHobRawData == NULL) {
+    DEBUG ((DEBUG_ERROR, "%a : BuildGuidHob failed \n", __FUNCTION__));
+    return EFI_OUT_OF_RESOURCES;
+  }
+
+  Ptr = GuidHobRawData;
+  CopyMem (Ptr, PubKey, PubKeySize);
+  CopyMem (Ptr + PubKeySize, PriKey, PriKeySize);
+
+  return EFI_SUCCESS;
+}
+
+VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO *
+GetCertEcP384KeyPairInfo (
+  VOID
+  )
+{
+  EFI_PEI_HOB_POINTERS  GuidHob;
+  UINT16                HobLength;
+
+  GuidHob.Guid = GetFirstGuidHob (&gEdkiiVTpmTdX509CertKeyInfoHobGuid);
+  if (GuidHob.Guid == NULL) {
+    DEBUG ((DEBUG_ERROR, "%a: The Guid HOB is not found \n", __FUNCTION__));
+    return NULL;
+  }
+
+  HobLength = sizeof (EFI_HOB_GUID_TYPE) + sizeof (VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO);
+
+  if (GuidHob.Guid->Header.HobLength != HobLength) {
+    DEBUG ((DEBUG_ERROR, "%a: The GuidHob.Guid->Header.HobLength is not equal HobLength, %d vs %d \n", __FUNCTION__, GuidHob.Guid->Header.HobLength, HobLength));
+    return NULL;
+  }
+
+  return (VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO *)(GuidHob.Guid + 1);
+}
+
+VOID
+ClearKeyPair (
+  VOID
+  )
+{
+  VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO  *KeyInfo;
+
+  KeyInfo = NULL;
+
+  KeyInfo = GetCertEcP384KeyPairInfo ();
+  if (KeyInfo == NULL) {
+    DEBUG ((DEBUG_ERROR, "%a: GetCertEcP384KeyPairInfo failed\n", __FUNCTION__));
+    return;
+  }
+
+  ZeroMem (KeyInfo, sizeof (VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO));
+
+  DEBUG ((DEBUG_INFO, "Clear the Key Pair after StartSession\n"));
 }

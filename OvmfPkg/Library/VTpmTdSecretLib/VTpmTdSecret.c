@@ -16,7 +16,9 @@
 #include <Library/DebugLib.h>
 #include <Library/HobLib.h>
 #include <Library/MemoryAllocationLib.h>
+#include <Library/PcdLib.h>
 #include <IndustryStandard/VTpmTd.h>
+#include "WorkArea.h"
 
 /** @file
  * SPDM common library.
@@ -63,24 +65,42 @@ GetCertKey (
   VOID
   )
 {
-  EFI_PEI_HOB_POINTERS  GuidHob;
-  UINT16                HobLength;
+  // EFI_PEI_HOB_POINTERS  GuidHob;
+  // UINT16                HobLength;
 
-  GuidHob.Guid = GetFirstGuidHob (&gEdkiiVTpmTdX509CertKeyInfoHobGuid);
-  if (GuidHob.Guid == NULL) {
-    DEBUG ((DEBUG_ERROR, "%a: The Guid HOB is not found \n", __FUNCTION__));
-    return NULL;
+  // GuidHob.Guid = GetFirstGuidHob (&gEdkiiVTpmTdX509CertKeyInfoHobGuid);
+  // if (GuidHob.Guid == NULL) {
+  //   DEBUG ((DEBUG_ERROR, "%a: The Guid HOB is not found \n", __FUNCTION__));
+  //   return NULL;
+  // }
+
+  // HobLength = sizeof (EFI_HOB_GUID_TYPE) + sizeof (VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO);
+
+  // if (GuidHob.Guid->Header.HobLength != HobLength) {
+  //   DEBUG ((DEBUG_ERROR, "%a: The GuidHob.Guid->Header.HobLength is not equal HobLength, %d vs %d \n", __FUNCTION__, GuidHob.Guid->Header.HobLength, HobLength));
+  //   return NULL;
+  // }
+
+  // return (VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO *)(GuidHob.Guid + 1);
+  OVMF_WORK_AREA  *WorkArea;
+
+  //
+  // Create a Guid hob to save SecuredSpdmSessionInfo
+  //
+  WorkArea = (OVMF_WORK_AREA *)FixedPcdGet32 (PcdOvmfWorkAreaBase);
+  if (WorkArea == NULL) {
+    ASSERT (FALSE);
   }
 
-  HobLength = sizeof (EFI_HOB_GUID_TYPE) + sizeof (VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO);
+  return (VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO *)(UINTN)(WorkArea->TdxWorkArea.SecTdxWorkArea.SpdmPublicKey);
 
-  if (GuidHob.Guid->Header.HobLength != HobLength) {
-    DEBUG ((DEBUG_ERROR, "%a: The GuidHob.Guid->Header.HobLength is not equal HobLength, %d vs %d \n", __FUNCTION__, GuidHob.Guid->Header.HobLength, HobLength));
-    return NULL;
-  }
+  // ASSERT (sizeof (WorkArea->TdxWorkArea.SecTdxWorkArea.SpdmPublicKey) == PubKeySize);
+  // ASSERT (sizeof (WorkArea->TdxWorkArea.SecTdxWorkArea.SpdmPrivateKey) == PriKeySize);
 
-  return (VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO *)(GuidHob.Guid + 1);
+  // CopyMem (WorkArea->TdxWorkArea.SecTdxWorkArea.SpdmPublicKey, PubKey, PubKeySize);
+  // CopyMem (WorkArea->TdxWorkArea.SecTdxWorkArea.SpdmPrivateKey, PriKey, PriKeySize);
 }
+
 
 STATIC
 BOOLEAN
@@ -169,6 +189,7 @@ VmmSpdmRequesterDataSign (
 {
   void  *context;
   bool  result;
+  DEBUG ((DEBUG_INFO, "VmmSpdmRequesterDataSign\n"));
 
   result = libspdm_get_requester_private_key_from_raw_data (req_base_asym_alg, &context);
   if (!result) {

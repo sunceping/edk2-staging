@@ -40,7 +40,7 @@ InitialVtpmTdCertChain (
   );
 
 VOID
-ClearKeyPairInGuidHob (
+ClearKeyPair (
   VOID
   );
 
@@ -48,3 +48,16 @@ VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO *
 GetCertEcP384KeyPairInfo (
   VOID
   );
+
+EFI_STATUS
+SaveCertEcP384KeyPair (
+  IN UINT8   *PubKey,
+  IN UINT32  PubKeySize,
+  IN UINT8   *PriKey,
+  IN UINT32  PriKeySize
+  );
+
+EFI_STATUS
+SaveTdReport(
+  IN UINT8 *TdReport
+);

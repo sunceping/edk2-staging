@@ -7,11 +7,11 @@
 
 [Defines]
   INF_VERSION                    = 0x00010005
-  BASE_NAME                      = VmmSpdmVTpmCommunicatorPeiLib
-  FILE_GUID                      = c2663a26-0806-4859-b386-936569315246
+  BASE_NAME                      = VmmSpdmVTpmCommunicatorSecLib
+  FILE_GUID                      = c2663a26-0806-4859-b386-9365693152aa
   MODULE_TYPE                    = BASE
   VERSION_STRING                 = 1.0
-  LIBRARY_CLASS                  = VmmSpdmVTpmCommunicatorLib|PEIM
+  LIBRARY_CLASS                  = VmmSpdmVTpmCommunicatorLib|SEC
 
 #
 # The following information is for reference only and not required by the build tools.
@@ -23,11 +23,10 @@
   SpdmEncodeDecode.c
   SpdmConnect.c
   Vmm.c
-  VmmSpdmVTpmCommunicatorPei.c
+  VmmSpdmVTpmCommunicatorSec.c
   VTpmCommunicate.c
   VTpmTransport.c
   VTpmRtmr.c
-  VTpmTdEvent.c
   VTpmTdCert.c
 
 [Packages]
@@ -41,15 +40,12 @@
   # gUefiOvmfPkgTokenSpaceGuid.PcdVtpmSecureSessionInfoTableAddr
   # gUefiOvmfPkgTokenSpaceGuid.PcdVtpmSecureSessionInfoTableSize
   gUefiOvmfPkgTokenSpaceGuid.PcdOvmfWorkAreaBase
+  gUefiOvmfPkgTokenSpaceGuid.PcdOvmfSecScratchMemoryBase
+  gUefiOvmfPkgTokenSpaceGuid.PcdOvmfSecScratchMemorySize
 
 [Guids]
-  gEdkiiVTpmSecureSpdmSessionInfoHobGuid
-  gEdkiiVTpmSharedBufferInfoHobGuid
-  gTpm2StartupLocalityHobGuid
-  gEdkiiHCRTMComponentEventHobGuid
-  gEdkiiVTpmTdX509CertKeyInfoHobGuid
-  gEdkiiTdReportInfoHobGuid
-  gEdkiiVTpmTdTdReportEventHobGuid
+#  gEdkiiVTpmSecureSpdmSessionInfoHobGuid
+#  gEdkiiVTpmSharedBufferInfoHobGuid
 
 [LibraryClasses]
   BaseLib
