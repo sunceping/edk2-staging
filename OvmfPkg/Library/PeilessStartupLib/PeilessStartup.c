@@ -21,6 +21,7 @@
 #include <ConfidentialComputingGuestAttr.h>
 #include <Guid/MemoryTypeInformation.h>
 #include <OvmfPlatforms.h>
+#include <Library/VmmSpdmVTpmCommunicatorLib.h>
 #include "PeilessStartupInternal.h"
 
 #define GET_GPAW_INIT_STATE(INFO)  ((UINT8) ((INFO) & 0x3f))
@@ -175,6 +176,25 @@ PeilessStartup (
   DEBUG ((DEBUG_INFO, "HobList: %p\n", GetHobList ()));
 
   if (TdIsEnabled ()) {
+    //
+    // Check if vTPM is supported or RTMR is supported.
+    //
+    if (!EFI_ERROR (TdxHelperInitSharedBuffer ())) {
+      if (!EFI_ERROR (VmmSpdmVTpmIsSupported ())) {
+        if (!EFI_ERROR (VmmSpdmVTpmConnect ())) {
+          // TODO
+          // Measure TdHob and Cfv to PCR[0]
+          DEBUG ((DEBUG_INFO, "vTPM-TD is connected.\n"));
+        } else {
+          DEBUG ((DEBUG_INFO, "vTPM-TD is NOT connected.\n"));
+        }
+      } else {
+        DEBUG ((DEBUG_INFO, "vTPM-TD is NOT supported.\n"));
+      }
+
+      TdxHelperDropSharedBuffer ();
+    }
+
     //
     // Build GuidHob for the tdx measurements which were done in SEC phase.
     //

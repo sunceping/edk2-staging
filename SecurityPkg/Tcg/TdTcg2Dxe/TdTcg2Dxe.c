@@ -2421,6 +2421,9 @@ DriverEntry (
   IN    EFI_SYSTEM_TABLE  *SystemTable
   )
 {
+#if 1
+  return EFI_UNSUPPORTED;
+#else
   EFI_STATUS  Status;
   EFI_EVENT   Event;
   VOID        *Registration;
@@ -2519,4 +2522,5 @@ DriverEntry (
   }
 
   return Status;
+#endif  
 }

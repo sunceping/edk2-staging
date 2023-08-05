@@ -827,7 +827,7 @@ HashAndExtendToRtmr (
   IN  UINTN  DigestLen
   )
 {
-  EFI_STATUS  Status;
+  // EFI_STATUS  Status;
 
   if ((DataToHash == NULL) || (DataToHashLen == 0)) {
     return EFI_INVALID_PARAMETER;
@@ -844,17 +844,18 @@ HashAndExtendToRtmr (
     return EFI_ABORTED;
   }
 
-  //
-  // Extend to RTMR
-  //
-  Status = TdExtendRtmr (
-             (UINT32 *)Digest,
-             SHA384_DIGEST_SIZE,
-             (UINT8)RtmrIndex
-             );
+  return EFI_SUCCESS;
+  // //
+  // // Extend to RTMR
+  // //
+  // Status = TdExtendRtmr (
+  //            (UINT32 *)Digest,
+  //            SHA384_DIGEST_SIZE,
+  //            (UINT8)RtmrIndex
+  //            );
 
-  ASSERT (!EFI_ERROR (Status));
-  return Status;
+  // ASSERT (!EFI_ERROR (Status));
+  // return Status;
 }
 
 /**

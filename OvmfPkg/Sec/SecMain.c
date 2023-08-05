@@ -759,9 +759,8 @@ SecCoreStartupWithStack (
   UINT32                Index;
   volatile UINT8        *Table;
 
- #if defined (TDX_GUEST_SUPPORTED)
+#if defined (TDX_GUEST_SUPPORTED)
   if (CcProbe () == CcGuestTypeIntelTdx) {
-
     //
     // From the security perspective all the external input should be measured before
     // it is consumed. TdHob and Configuration FV (Cfv) image are passed from VMM
@@ -785,7 +784,7 @@ SecCoreStartupWithStack (
     }
   }
 
- #endif
+#endif
 
   //
   // To ensure SMM can't be compromised on S3 resume, we must force re-init of

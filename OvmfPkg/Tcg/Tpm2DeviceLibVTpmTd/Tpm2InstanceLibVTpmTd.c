@@ -73,9 +73,13 @@ Tpm2InstanceLibVTpmConstructor (
 {
   EFI_STATUS                      Status;
 
+  DEBUG ((DEBUG_INFO, ">>%a\n", __FUNCTION__));
+
   Status = gBS->LocateProtocol (&gEdkiiVmmSpdmTunnelProtocolGuid, NULL, (VOID **)&mVmmSpdmTunnel);
   if (!EFI_ERROR (Status) && mVmmSpdmTunnel->Supported) {
     Status = Tpm2RegisterTpm2DeviceLib (&mVTpmInternalTpm2Device);
+  } else {
+    DEBUG ((DEBUG_INFO, ">>locate protocol of gEdkiiVmmSpdmTunnelProtocolGuid status = %r\n", Status));
   }
 
   return EFI_SUCCESS;

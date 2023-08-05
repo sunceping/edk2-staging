@@ -2997,6 +2997,8 @@ DriverEntry (
     return Status;
   }
 
+  Tpm2Startup (TPM_SU_CLEAR);
+
   //
   // Fill information
   //

@@ -350,8 +350,11 @@ PrepareForVtpm (
   EFI_STATUS            Status;
   EFI_PHYSICAL_ADDRESS  Address;
   VOID                  *Registration;
+  UINTN                 Size;
   EFI_EVENT             AcpiTableEvent;
   VTPM_SECURE_SESSION_INFO_TABLE *InfoTable;
+
+  DEBUG ((DEBUG_INFO, ">>%a\n", __FUNCTION__));
 
   // Check if SecuredSpdmSession is established
   InfoTable = GetSpdmSecuredSessionInfo ();
@@ -359,6 +362,15 @@ PrepareForVtpm (
     DEBUG ((DEBUG_INFO, "SecuredSpdmSession is not established.\n"));
     return EFI_NOT_STARTED;
   }
+
+  // Set PcdTpmInstanceGuid
+  Size   = sizeof (gEfiTpmDeviceInstanceTpm20DtpmGuid);
+  Status = PcdSetPtrS (
+              PcdTpmInstanceGuid,
+              &Size,
+              &gEfiTpmDeviceInstanceTpm20DtpmGuid
+              );
+  ASSERT_EFI_ERROR (Status);
 
   Status = gBS->AllocatePages (
                                AllocateAnyPages,

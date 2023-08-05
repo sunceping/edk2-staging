@@ -90,6 +90,10 @@
   INTEL:*_*_*_CC_FLAGS = /D TDX_PEI_LESS_BOOT
   GCC:*_*_*_CC_FLAGS = -D TDX_PEI_LESS_BOOT
 
+  MSFT:*_*_*_CC_FLAGS = /D VTPM_FEATURE_ENABLED
+  INTEL:*_*_*_CC_FLAGS = /D VTPM_FEATURE_ENABLED
+  GCC:*_*_*_CC_FLAGS = -D VTPM_FEATURE_ENABLED
+
   #
   # SECURE_BOOT_FEATURE_ENABLED
   #
@@ -192,7 +196,8 @@
   DebugPrintErrorLevelLib|MdePkg/Library/BaseDebugPrintErrorLevelLib/BaseDebugPrintErrorLevelLib.inf
 
   IntrinsicLib|CryptoPkg/Library/IntrinsicLib/IntrinsicLib.inf
-  OpensslLib|CryptoPkg/Library/OpensslLib/OpensslLibCrypto.inf
+  #OpensslLib|CryptoPkg/Library/OpensslLib/OpensslLibCrypto.inf
+  OpensslLib|CryptoPkg/Library/OpensslLib/OpensslLibFull.inf
   RngLib|MdePkg/Library/BaseRngLibTimerLib/BaseRngLibTimerLib.inf
 
 !if $(SECURE_BOOT_ENABLE) == TRUE
@@ -226,6 +231,7 @@
   TdxLib|MdePkg/Library/TdxLib/TdxLib.inf
   TdxMailboxLib|OvmfPkg/Library/TdxMailboxLib/TdxMailboxLib.inf
   PlatformInitLib|OvmfPkg/Library/PlatformInitLib/PlatformInitLib.inf
+  PeiServicesLib|MdePkg/Library/PeiServicesLib/PeiServicesLib.inf
 
 [LibraryClasses.common.SEC]
   TimerLib|OvmfPkg/Library/AcpiTimerLib/BaseRomAcpiTimerLib.inf
@@ -537,6 +543,12 @@
 
   gEfiMdePkgTokenSpaceGuid.PcdFSBClock|1000000000
 
+  gEfiSecurityPkgTokenSpaceGuid.PcdTpmInstanceGuid|{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
+
+  # Support SHA256 SHA384
+  gEfiSecurityPkgTokenSpaceGuid.PcdTpm2HashMask|0x6
+  gEfiSecurityPkgTokenSpaceGuid.PcdTcg2HashAlgorithmBitmap|0x6
+
 ################################################################################
 #
 # Components Section - list of all EDK II Modules needed by this Platform.
@@ -552,7 +564,11 @@
     <LibraryClasses>
       NULL|MdeModulePkg/Library/LzmaCustomDecompressLib/LzmaCustomDecompressLib.inf
       NULL|OvmfPkg/IntelTdx/TdxHelperLib/SecTdxHelperLib.inf
-      BaseCryptLib|CryptoPkg/Library/BaseCryptLib/SecCryptLib.inf
+      #BaseCryptLib|CryptoPkg/Library/BaseCryptLib/SecCryptLib.inf
+      BaseCryptLib|CryptoPkg/Library/BaseCryptLib/PeiCryptLib.inf
+      MemEncryptTdxLib|OvmfPkg/Library/BaseMemEncryptTdxLib/SecBaseMemEncryptTdxLib.inf
+      !include ../VmmSpdmLibs.dsc.inc
+      VmmSpdmVTpmCommunicatorLib|OvmfPkg/Library/VmmSpdmVTpm/VmmSpdmVTpmCommunicatorLibSec.inf
   }
 
   #
@@ -765,6 +781,12 @@
 
   OvmfPkg/TdxDxe/TdxDxe.inf
 
+  OvmfPkg/Tcg/VmmSpdmTunnel/VmmSpdmTunnelDxe.inf {
+    <LibraryClasses>
+      !include ../VmmSpdmLibs.dsc.inc
+      VmmSpdmVTpmCommunicatorLib|OvmfPkg/Library/VmmSpdmVTpm/VmmSpdmVTpmCommunicatorLibDxe.inf
+  }
+
   #
   # Variable driver stack (non-SMM)
   #
@@ -786,4 +808,22 @@
     <LibraryClasses>
       HashLib|SecurityPkg/Library/HashLibTdx/HashLibTdx.inf
       NULL|SecurityPkg/Library/HashInstanceLibSha384/HashInstanceLibSha384.inf
+  }
+
+  #
+  # TCG2 Measurement Protocol
+  #
+  SecurityPkg/Tcg/Tcg2Dxe/Tcg2Dxe.inf {
+    <LibraryClasses>
+      Tpm2CommandLib|SecurityPkg/Library/Tpm2CommandLib/Tpm2CommandLib.inf
+      Tcg2PhysicalPresenceLib|OvmfPkg/Library/Tcg2PhysicalPresenceLibQemu/DxeTcg2PhysicalPresenceLib.inf
+      Tpm2DeviceLib|SecurityPkg/Library/Tpm2DeviceLibRouter/Tpm2DeviceLibRouterDxe.inf
+      NULL|OvmfPkg/Tcg/Tpm2DeviceLibVTpmTd/Tpm2InstanceLibVTpmTd.inf
+      !include ../VmmSpdmLibs.dsc.inc
+      HashLib|SecurityPkg/Library/HashLibBaseCryptoRouter/HashLibBaseCryptoRouterDxe.inf
+      NULL|SecurityPkg/Library/HashInstanceLibSha1/HashInstanceLibSha1.inf
+      NULL|SecurityPkg/Library/HashInstanceLibSha256/HashInstanceLibSha256.inf
+      NULL|SecurityPkg/Library/HashInstanceLibSha384/HashInstanceLibSha384.inf
+      NULL|SecurityPkg/Library/HashInstanceLibSha512/HashInstanceLibSha512.inf
+      NULL|SecurityPkg/Library/HashInstanceLibSm3/HashInstanceLibSm3.inf
   }
