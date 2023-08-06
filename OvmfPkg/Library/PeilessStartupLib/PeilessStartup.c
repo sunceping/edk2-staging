@@ -18,6 +18,7 @@
 #include <Library/PeilessStartupLib.h>
 #include <Library/PlatformInitLib.h>
 #include <Library/TdxHelperLib.h>
+#include <Library/Tpm2CommandLib.h>
 #include <ConfidentialComputingGuestAttr.h>
 #include <Guid/MemoryTypeInformation.h>
 #include <OvmfPlatforms.h>
@@ -176,23 +177,11 @@ PeilessStartup (
   DEBUG ((DEBUG_INFO, "HobList: %p\n", GetHobList ()));
 
   if (TdIsEnabled ()) {
-    //
-    // Check if vTPM is supported or RTMR is supported.
-    //
-    if (!EFI_ERROR (TdxHelperInitSharedBuffer ())) {
-      if (!EFI_ERROR (VmmSpdmVTpmIsSupported ())) {
-        if (!EFI_ERROR (VmmSpdmVTpmConnect ())) {
-          // TODO
-          // Measure TdHob and Cfv to PCR[0]
-          DEBUG ((DEBUG_INFO, "vTPM-TD is connected.\n"));
-        } else {
-          DEBUG ((DEBUG_INFO, "vTPM-TD is NOT connected.\n"));
-        }
-      } else {
-        DEBUG ((DEBUG_INFO, "vTPM-TD is NOT supported.\n"));
-      }
 
-      TdxHelperDropSharedBuffer ();
+    Status = PeilessStartupDoMeasurement ();
+    if (EFI_ERROR (Status)) {
+      ASSERT (FALSE);
+      CpuDeadLoop ();
     }
 
     //

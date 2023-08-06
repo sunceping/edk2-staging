@@ -78,8 +78,12 @@ typedef struct _SEV_WORK_AREA {
 
 typedef struct _TDX_MEASUREMENTS_DATA {
   UINT32    MeasurementsBitmap;
-  UINT8     TdHobHashValue[SHA384_DIGEST_SIZE];
-  UINT8     CfvImgHashValue[SHA384_DIGEST_SIZE];
+  UINT8     TdHobHash256Value[SHA256_DIGEST_SIZE];
+  UINT8     CfvImgHash256Value[SHA256_DIGEST_SIZE];
+  UINT8     TdHobHash384Value[SHA384_DIGEST_SIZE];
+  UINT8     CfvImgHash384Value[SHA384_DIGEST_SIZE];
+  UINT8     TdHobHash512Value[SHA512_DIGEST_SIZE];
+  UINT8     CfvImgHash512Value[SHA512_DIGEST_SIZE];
 } TDX_MEASUREMENTS_DATA;
 
 //
@@ -92,6 +96,7 @@ typedef struct _SEC_TDX_WORK_AREA {
   TDX_MEASUREMENTS_DATA    TdxMeasurementsData;
   UINT32                   SharedMemoryReady;
   UINT32                   MeasurementType;
+  UINT32                   Tpm2ActivePcrBanks;
   UINT8                    SpdmSecureSessionInfo[128];
   UINT8                    SpdmPublicKey[96];
   UINT8                    SpdmPrivateKey[48];

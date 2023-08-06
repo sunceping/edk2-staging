@@ -353,6 +353,7 @@ PrepareForVtpm (
   UINTN                 Size;
   EFI_EVENT             AcpiTableEvent;
   VTPM_SECURE_SESSION_INFO_TABLE *InfoTable;
+  OVMF_WORK_AREA  *WorkArea;
 
   DEBUG ((DEBUG_INFO, ">>%a\n", __FUNCTION__));
 
@@ -363,6 +364,13 @@ PrepareForVtpm (
     return EFI_NOT_STARTED;
   }
 
+  WorkArea = (OVMF_WORK_AREA *)FixedPcdGet32 (PcdOvmfWorkAreaBase);
+  if (WorkArea == NULL) {
+    return EFI_INVALID_PARAMETER;
+  }
+
+  ASSERT (WorkArea->TdxWorkArea.SecTdxWorkArea.MeasurementType == TDX_MEASUREMENT_TYPE_VTPM);
+
   // Set PcdTpmInstanceGuid
   Size   = sizeof (gEfiTpmDeviceInstanceTpm20DtpmGuid);
   Status = PcdSetPtrS (
@@ -371,6 +379,9 @@ PrepareForVtpm (
               &gEfiTpmDeviceInstanceTpm20DtpmGuid
               );
   ASSERT_EFI_ERROR (Status);
+
+  // Set active pcr banks
+  PcdSet32S (PcdTpm2HashMask, WorkArea->TdxWorkArea.SecTdxWorkArea.Tpm2ActivePcrBanks);
 
   Status = gBS->AllocatePages (
                                AllocateAnyPages,

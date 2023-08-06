@@ -545,9 +545,9 @@
 
   gEfiSecurityPkgTokenSpaceGuid.PcdTpmInstanceGuid|{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
 
-  # Support SHA256 SHA384
-  gEfiSecurityPkgTokenSpaceGuid.PcdTpm2HashMask|0x6
-  gEfiSecurityPkgTokenSpaceGuid.PcdTcg2HashAlgorithmBitmap|0x6
+  # Support SHA256 SHA384 SHA512
+  gEfiSecurityPkgTokenSpaceGuid.PcdTpm2HashMask|0
+  # gEfiSecurityPkgTokenSpaceGuid.PcdTcg2HashAlgorithmBitmap|0x7
 
 ################################################################################
 #
@@ -564,9 +564,10 @@
     <LibraryClasses>
       NULL|MdeModulePkg/Library/LzmaCustomDecompressLib/LzmaCustomDecompressLib.inf
       NULL|OvmfPkg/IntelTdx/TdxHelperLib/SecTdxHelperLib.inf
-      #BaseCryptLib|CryptoPkg/Library/BaseCryptLib/SecCryptLib.inf
       BaseCryptLib|CryptoPkg/Library/BaseCryptLib/PeiCryptLib.inf
       MemEncryptTdxLib|OvmfPkg/Library/BaseMemEncryptTdxLib/SecBaseMemEncryptTdxLib.inf
+      Tpm2CommandLib|SecurityPkg/Library/Tpm2CommandLib/Tpm2CommandLib.inf
+      Tpm2DeviceLib|OvmfPkg/Tcg/Tpm2DeviceLibVTpmTd/Tpm2DeviceLibVTpmTdSec.inf
       !include ../VmmSpdmLibs.dsc.inc
       VmmSpdmVTpmCommunicatorLib|OvmfPkg/Library/VmmSpdmVTpm/VmmSpdmVTpmCommunicatorLibSec.inf
   }

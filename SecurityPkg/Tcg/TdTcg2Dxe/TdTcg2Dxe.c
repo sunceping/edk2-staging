@@ -2421,9 +2421,6 @@ DriverEntry (
   IN    EFI_SYSTEM_TABLE  *SystemTable
   )
 {
-#if 1
-  return EFI_UNSUPPORTED;
-#else
   EFI_STATUS  Status;
   EFI_EVENT   Event;
   VOID        *Registration;
@@ -2433,6 +2430,11 @@ DriverEntry (
   }
 
   mImageHandle = ImageHandle;
+
+if (CompareGuid (PcdGetPtr (PcdTpmInstanceGuid), &gEfiTpmDeviceInstanceTpm20DtpmGuid)) {
+  DEBUG ((DEBUG_INFO, "It is TPM based measurement.\n"));
+  return EFI_UNSUPPORTED;
+}
 
   //
   // Fill information
@@ -2522,5 +2524,4 @@ DriverEntry (
   }
 
   return Status;
-#endif  
 }

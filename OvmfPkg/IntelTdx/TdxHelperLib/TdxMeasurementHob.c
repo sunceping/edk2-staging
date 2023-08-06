@@ -183,6 +183,7 @@ InternalBuildGuidHobForTdxMeasurement (
   EFI_PHYSICAL_ADDRESS         FvBase;
   UINT64                       FvLength;
   UINT8                        *HashValue;
+  UINT32                       MeasurementType;
 
   if (!TdIsEnabled ()) {
     ASSERT (FALSE);
@@ -195,13 +196,22 @@ InternalBuildGuidHobForTdxMeasurement (
   }
 
   Status = EFI_SUCCESS;
+  MeasurementType = WorkArea->TdxWorkArea.SecTdxWorkArea.MeasurementType;
+
+  if (MeasurementType == TDX_MEASUREMENT_TYPE_NONE) {
+    ASSERT (FALSE);
+    return EFI_INVALID_PARAMETER;
+  }
+
+  // TODO
+  // Build GuidHob for different MeasurementType.
 
   //
   // Build the GuidHob for TdHob measurement
   //
   TdHobList = (VOID *)(UINTN)FixedPcdGet32 (PcdOvmfSecGhcbBase);
   if (WorkArea->TdxWorkArea.SecTdxWorkArea.TdxMeasurementsData.MeasurementsBitmap & TDX_MEASUREMENT_TDHOB_BITMASK) {
-    HashValue                          = WorkArea->TdxWorkArea.SecTdxWorkArea.TdxMeasurementsData.TdHobHashValue;
+    HashValue                          = WorkArea->TdxWorkArea.SecTdxWorkArea.TdxMeasurementsData.TdHobHash256Value;
     HandoffTables.TableDescriptionSize = sizeof (HandoffTables.TableDescription);
     CopyMem (HandoffTables.TableDescription, HANDOFF_TABLE_DESC, sizeof (HandoffTables.TableDescription));
     HandoffTables.NumberOfTables = 1;
@@ -227,7 +237,7 @@ InternalBuildGuidHobForTdxMeasurement (
   // Build the GuidHob for Cfv measurement
   //
   if (WorkArea->TdxWorkArea.SecTdxWorkArea.TdxMeasurementsData.MeasurementsBitmap & TDX_MEASUREMENT_CFVIMG_BITMASK) {
-    HashValue                   = WorkArea->TdxWorkArea.SecTdxWorkArea.TdxMeasurementsData.CfvImgHashValue;
+    HashValue                   = WorkArea->TdxWorkArea.SecTdxWorkArea.TdxMeasurementsData.CfvImgHash256Value;
     FvBase                      = (UINT64)PcdGet32 (PcdOvmfFlashNvStorageVariableBase);
     FvLength                    = (UINT64)PcdGet32 (PcdCfvRawDataSize);
     FvBlob2.BlobDescriptionSize = sizeof (FvBlob2.BlobDescription);

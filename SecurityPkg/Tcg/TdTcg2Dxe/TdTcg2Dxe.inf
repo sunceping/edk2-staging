@@ -69,6 +69,7 @@
   gTcg800155PlatformIdEventHobGuid                   ## SOMETIMES_CONSUMES  ## HOB
   gEfiCcFinalEventsTableGuid                         ## PRODUCES
 
+  gEfiTpmDeviceInstanceTpm20DtpmGuid                ## SOMETIMES_CONSUMES
 [Protocols]
   gEfiCcMeasurementProtocolGuid                      ## PRODUCES
   gEfiMpServiceProtocolGuid                          ## SOMETIMES_CONSUMES
@@ -91,6 +92,7 @@
   gEfiMdeModulePkgTokenSpaceGuid.PcdAcpiDefaultOemRevision                  ## CONSUMES
   gEfiMdeModulePkgTokenSpaceGuid.PcdAcpiDefaultCreatorId                    ## CONSUMES
   gEfiMdeModulePkgTokenSpaceGuid.PcdAcpiDefaultCreatorRevision              ## CONSUMES
+  gEfiSecurityPkgTokenSpaceGuid.PcdTpmInstanceGuid
 
 [Depex]
   # According to PcdTpm2AcpiTableRev definition in SecurityPkg.dec

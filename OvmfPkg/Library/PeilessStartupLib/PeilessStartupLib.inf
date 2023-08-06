@@ -26,9 +26,10 @@
 #
 
 [Sources]
-  PeilessStartup.c
-  Hob.c
   DxeLoad.c
+  Hob.c
+  Measurement.c
+  PeilessStartup.c
   X64/VirtualMemory.c
 
 [Packages]
@@ -56,6 +57,8 @@
   PrePiLib
   QemuFwCfgLib
   PlatformInitLib
+  Tpm2DeviceLib
+  Tpm2CommandLib
 
 [Guids]
   gEfiHobMemoryAllocModuleGuid
@@ -65,7 +68,7 @@
   gPcdDataBaseHobGuid
   gCcEventEntryHobGuid
   gEfiNonCcFvGuid
-
+  
 [Pcd]
   gUefiOvmfPkgTokenSpaceGuid.PcdBfvBase
   gUefiOvmfPkgTokenSpaceGuid.PcdBfvRawDataOffset
@@ -83,3 +86,6 @@
   gEfiMdeModulePkgTokenSpaceGuid.PcdNullPointerDetectionPropertyMask    ## CONSUMES
   gUefiOvmfPkgTokenSpaceGuid.PcdOvmfDxeMemFvBase
   gUefiOvmfPkgTokenSpaceGuid.PcdOvmfDxeMemFvSize
+  gEfiSecurityPkgTokenSpaceGuid.PcdTpm2HashMask
+  gEfiSecurityPkgTokenSpaceGuid.PcdTcg2HashAlgorithmBitmap
+  gUefiOvmfPkgTokenSpaceGuid.PcdOvmfWorkAreaBase
