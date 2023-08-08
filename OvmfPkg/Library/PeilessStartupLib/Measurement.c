@@ -49,14 +49,14 @@ SyncPcrAllocationsAndPcrMask (
   return TpmActivePcrBanks;
 }
 
-STATIC
-EFI_STATUS
-ExtendToRtmr (
-  TDX_MEASUREMENTS_DATA *TdxMeasurementsData
-  )
-{
-  return EFI_SUCCESS;
-}
+// STATIC
+// EFI_STATUS
+// ExtendToRtmr (
+//   TDX_MEASUREMENTS_DATA *TdxMeasurementsData
+//   )
+// {
+//   return EFI_SUCCESS;
+// }
 
 
 STATIC
@@ -156,7 +156,8 @@ STATIC
 EFI_STATUS
 HashExtendTdHobToVtpm
  (
-  UINT32 Tpm2ActivePcrBanks
+  UINT32 Tpm2ActivePcrBanks,
+  UINT32 PcrIndex
  )
 {
 
@@ -183,15 +184,16 @@ HashExtendTdHobToVtpm
   Status = InitDigestList(Tpm2ActivePcrBanks,&DigestList,TdHob,TdHobSize);
   if (EFI_ERROR(Status))
   {
+    DEBUG((DEBUG_INFO, "%a: InitDigestList failed with %r\n", __FUNCTION__, Status));
     return Status;
   }
 
   VTpmDumpHex((UINT8*)&DigestList, sizeof(DigestList));
 
-  Status = Tpm2PcrExtend(0, &DigestList);
+  Status = Tpm2PcrExtend(PcrIndex, &DigestList);
   if (EFI_ERROR(Status))
   {
-    return Status;
+   DEBUG((DEBUG_INFO, "%a: Tpm2PcrExtend failed with %r\n", __FUNCTION__, Status));
   }
   // ASSERT (FALSE);
 
@@ -203,7 +205,8 @@ STATIC
 EFI_STATUS
 HashExtendCfvImageToVtpm
  (
-  UINT32 Tpm2ActivePcrBanks
+  UINT32 Tpm2ActivePcrBanks,
+  UINT32 PcrIndex
  ){
   EFI_STATUS Status;
 
@@ -217,16 +220,16 @@ HashExtendCfvImageToVtpm
   Status = InitDigestList(Tpm2ActivePcrBanks,&DigestList,CfvImage,CfvSize);
   if (EFI_ERROR(Status))
   {
+    DEBUG((DEBUG_INFO, "%a: InitDigestList failed with %r\n", __FUNCTION__, Status));
     return Status;
   }
 
   VTpmDumpHex((UINT8*)&DigestList, sizeof(DigestList));
 
-  Status = Tpm2PcrExtend(0, &DigestList);
+  Status = Tpm2PcrExtend(PcrIndex, &DigestList);
   if (EFI_ERROR(Status))
   {
-            ASSERT (FALSE);
-    return Status;
+    DEBUG((DEBUG_INFO, "%a: Tpm2PcrExtend failed with %r\n", __FUNCTION__, Status));
   }
   return Status;
  }
@@ -242,15 +245,18 @@ ExtendToVTpm (
   // EFI_STATUS          Status;
   // DEBUG((DEBUG_INFO, "[Sunce] just return test \n"));
   // return EFI_SUCCESS; // debug the pcr read
+  UINT32 PcrIndex;
 
   if (TdxMeasurementsData == NULL)
   {
     return EFI_INVALID_PARAMETER;
   }
   
+  PcrIndex = 0;
+
   if (TdxMeasurementsData->MeasurementsBitmap & TDX_MEASUREMENT_TDHOB_BITMASK)
   {
-    if (EFI_ERROR(HashExtendTdHobToVtpm(Tpm2ActivePcrBanks)))
+    if (EFI_ERROR(HashExtendTdHobToVtpm(Tpm2ActivePcrBanks,PcrIndex)))
     {
         ASSERT (FALSE);
       return EFI_ABORTED;
@@ -259,7 +265,7 @@ ExtendToVTpm (
 
   if (TdxMeasurementsData->MeasurementsBitmap & TDX_MEASUREMENT_CFVIMG_BITMASK)
   {
-    if (EFI_ERROR(HashExtendCfvImageToVtpm(Tpm2ActivePcrBanks)))
+    if (EFI_ERROR(HashExtendCfvImageToVtpm(Tpm2ActivePcrBanks,PcrIndex)))
     {
         ASSERT (FALSE);
       return EFI_ABORTED;
@@ -296,15 +302,16 @@ DoMeasurement (
   TdxMeasurementsData = &WorkArea->TdxWorkArea.SecTdxWorkArea.TdxMeasurementsData;
 
   if (MeasurementType == TDX_MEASUREMENT_TYPE_NONE || Tpm2ActivePcrBanks == 0) {
-    ASSERT (FALSE);
+    DEBUG((DEBUG_INFO, "Invalid MeasurementType or Tpm2ActivePcrBanks \n"));
     return EFI_INVALID_PARAMETER;
   }
 
   Status = EFI_SUCCESS;
 
   if (MeasurementType == TDX_MEASUREMENT_TYPE_CC) {
-    // Do RTMR measurement --- not need to do --
-    Status = ExtendToRtmr (TdxMeasurementsData);
+    // // Do RTMR measurement --- not need to do --
+    // Status = ExtendToRtmr (TdxMeasurementsData);
+    return EFI_SUCCESS;
   } else if (MeasurementType == TDX_MEASUREMENT_TYPE_VTPM) {
     // Do VTPM measurement
     Status = ExtendToVTpm (Tpm2ActivePcrBanks, TdxMeasurementsData);
@@ -351,6 +358,7 @@ PeilessStartupDoMeasurement (
 
   VTpmEnabled = FALSE;
   SharedBufferInitialized = FALSE;
+  TpmActivePcrBanks       = 0;
 
   do {
     if (EFI_ERROR (TdxHelperInitSharedBuffer ())) {
@@ -377,9 +385,12 @@ PeilessStartupDoMeasurement (
     TpmActivePcrBanks = SyncPcrAllocationsAndPcrMask ();
     VTpmEnabled = TRUE;
 
-    SetTdxMeasurementInWorkarea (VTpmEnabled, TpmActivePcrBanks);
   } while (FALSE);
 
+  if (EFI_ERROR ( SetTdxMeasurementInWorkarea (VTpmEnabled, TpmActivePcrBanks))) {
+      DEBUG ((DEBUG_INFO, "Set TdxMeasurement In Workarea failed.\n"));
+  }
+ 
   DoMeasurement ();
 
   if (SharedBufferInitialized) {

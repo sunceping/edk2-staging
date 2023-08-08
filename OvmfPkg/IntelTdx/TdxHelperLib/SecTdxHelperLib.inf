@@ -24,7 +24,7 @@
 
 [Sources]
   SecTdxHelper.c
-  SecTdxMeasurementHob.c
+  TdxMeasurementHob.c
 
 [Packages]
   CryptoPkg/CryptoPkg.dec

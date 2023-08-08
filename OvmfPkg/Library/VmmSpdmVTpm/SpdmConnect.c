@@ -1103,6 +1103,12 @@ DoEndSession (
     return EFI_DEVICE_ERROR;
   }
 
+  //Session info in workarea must be invalid after SpdmStopSession
+  VTPM_SECURE_SESSION_INFO_TABLE *InfoTable;
+
+  InfoTable = GetSpdmSecuredSessionInfo ();
+  InfoTable->SessionId = 0;
+
   DEBUG ((DEBUG_INFO, "%a: Session is destroyed\n", __FUNCTION__));
 
   return EFI_SUCCESS;

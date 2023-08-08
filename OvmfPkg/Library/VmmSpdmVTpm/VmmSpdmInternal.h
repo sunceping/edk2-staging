@@ -10,6 +10,7 @@
 #include <PiDxe.h>
 #include <SpdmReturnStatus.h>
 #include <IndustryStandard/VTpmTd.h>
+#include <Stub/SpdmLibStub.h>
 #include <WorkArea.h>
 
 //
@@ -182,6 +183,29 @@ VtpmAllocateSharedBuffer(
   IN OUT UINT8   **SharedBuffer,
   IN UINT32      Pages
 );
+
+UINTN
+VmmSpmdCalculateSize (
+  VMM_SPDM_CONTEXT_BUFFERS_SIZE  *ContextBuffersSize
+  );
+
+EFI_STATUS
+FreeMemoryForVmmSpdmContext (
+  VMM_SPDM_CONTEXT  *Context,
+  UINT32            Pages
+  );
+
+EFI_STATUS
+AllocateMemoryForVmmSpdmContext (
+  VOID    **ppContext,
+  UINT32  *Pages
+  );
+
+
+EFI_STATUS
+ExportSecureSpdmSessionInfos (
+  VMM_SPDM_CONTEXT  *Context
+  );
 
 VTPM_SECURE_SESSION_INFO_TABLE *
 GetSpdmSecuredSessionInfo (

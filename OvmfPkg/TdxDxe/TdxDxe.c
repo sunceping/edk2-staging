@@ -303,34 +303,17 @@ SetMmioSharedBit (
   return EFI_SUCCESS;
 }
 
+#ifdef VTPM_FEATURE_ENABLED
 STATIC
 VTPM_SECURE_SESSION_INFO_TABLE *
 GetSpdmSecuredSessionInfo (
   VOID
   )
 {
-  // EFI_PEI_HOB_POINTERS            GuidHob;
-  // UINT16                          HobLength;
 
-  // GuidHob.Guid = GetFirstGuidHob (&gEdkiiVTpmSecureSpdmSessionInfoHobGuid);
-  // if (GuidHob.Guid == NULL) {
-  //   return NULL;
-  // }
-
-  // HobLength = sizeof (EFI_HOB_GUID_TYPE) + VTPM_SECURE_SESSION_INFO_TABLE_SIZE;
-
-  // if (GuidHob.Guid->Header.HobLength != HobLength) {
-  //   ASSERT (FALSE);
-  //   return NULL;
-  // }
-
-  // return (VTPM_SECURE_SESSION_INFO_TABLE *)(GuidHob.Guid + 1);
   VTPM_SECURE_SESSION_INFO_TABLE  *InfoTable;
   OVMF_WORK_AREA                  *WorkArea;
 
-  //
-  // Create a Guid hob to save SecuredSpdmSessionInfo
-  //
   WorkArea = (OVMF_WORK_AREA *)FixedPcdGet32 (PcdOvmfWorkAreaBase);
   if (WorkArea == NULL) {
     ASSERT (FALSE);
@@ -423,6 +406,7 @@ PrepareForVtpm (
 
   return EFI_SUCCESS;
 }
+#endif
 
 EFI_STATUS
 EFIAPI
@@ -540,8 +524,9 @@ TdxDxeEntryPoint (
                   QemuAcpiTableEvent,
                   &Registration
                   );
-
+ #ifdef VTPM_FEATURE_ENABLED
   PrepareForVtpm ();
+ #endif
 
   #define INIT_PCDSET(NAME, RES)  do {\
   PcdStatus = PcdSet64S (NAME##Base, (RES)->PhysicalStart); \
