@@ -205,6 +205,63 @@ GetEcPritKey (
 
 //   return (VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO *)(GuidHob.Guid + 1);
 // }
+VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO *
+GetCertEcP384KeyPairInfo (
+  VOID
+  )
+{
+  VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO  *KeyPair;
+  OVMF_WORK_AREA                  *WorkArea;
+
+  WorkArea = (OVMF_WORK_AREA *)FixedPcdGet32 (PcdOvmfWorkAreaBase);
+  if (WorkArea == NULL) {
+    ASSERT (FALSE);
+    return NULL;
+  }
+
+  KeyPair = (VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO *)(UINTN)WorkArea->TdxWorkArea.SecTdxWorkArea.SpdmPublicKey;
+
+  return KeyPair;
+}
+
+/**
+ * Save the key pair.
+ *
+ * @param  PubKey          A pointer to the public key data.
+ * @param  PubKeySize      The size of the public key data.
+ * @param  PriKey          A pointer to the private key data.
+ * @param  PriKeySize      The size of the private key data.
+ *
+ * @return EFI_SUCCESS    Save key pair data was successfully.
+ * @return Others         Some errors.
+*/
+EFI_STATUS
+SaveCertEcP384KeyPair (
+  IN UINT8   *PubKey,
+  IN UINT32  PubKeySize,
+  IN UINT8   *PriKey,
+  IN UINT32  PriKeySize
+  )
+{
+  OVMF_WORK_AREA  *WorkArea;
+
+  WorkArea = (OVMF_WORK_AREA *)FixedPcdGet32 (PcdOvmfWorkAreaBase);
+  if (WorkArea == NULL) {
+    ASSERT (FALSE);
+    return EFI_DEVICE_ERROR;
+  }
+
+  if (sizeof (WorkArea->TdxWorkArea.SecTdxWorkArea.SpdmPublicKey) != PubKeySize ||  sizeof (WorkArea->TdxWorkArea.SecTdxWorkArea.SpdmPrivateKey) != PriKeySize )
+  {
+    return EFI_INVALID_PARAMETER;
+  }
+
+  CopyMem (WorkArea->TdxWorkArea.SecTdxWorkArea.SpdmPublicKey, PubKey, PubKeySize);
+  CopyMem (WorkArea->TdxWorkArea.SecTdxWorkArea.SpdmPrivateKey, PriKey, PriKeySize);
+
+  return EFI_SUCCESS;
+}
+
 
 /**
  * Get the public key and private key info.
@@ -402,6 +459,35 @@ ClearExtension:
   return Status;
 }
 
+EFI_STATUS
+SaveTdReport(
+  IN UINT8 *TdReport,
+  IN UINT32 TdReportSize
+)
+{
+  OVMF_WORK_AREA  *WorkArea;
+
+  
+  if (TdReport == NULL)
+  {
+    return EFI_INVALID_PARAMETER;
+  }
+
+  WorkArea = (OVMF_WORK_AREA *)FixedPcdGet32 (PcdOvmfWorkAreaBase);
+  if (WorkArea == NULL) {
+    ASSERT (FALSE);
+  }
+
+  if (TdReportSize > sizeof(WorkArea->TdxWorkArea.TdxTdReportInfo))
+  {
+    return EFI_OUT_OF_RESOURCES;
+  }
+  
+  CopyMem(WorkArea->TdxWorkArea.TdxTdReportInfo, TdReport, TdReportSize);
+
+  return EFI_SUCCESS;
+}
+
 /**
  * Get the TD_REPORT with the public key.
  *
@@ -413,18 +499,29 @@ ClearExtension:
 STATIC
 EFI_STATUS
 GetTdReportForVTpmTdCert (
-  OUT UINT8  *Report
+  OUT UINT8  *Report,
+  IN  UINT32  ReportSize
   )
 {
   EFI_STATUS  Status;
   UINT8       *AdditionalData;
   UINT8       Digest[SHA384_DIGEST_SIZE];
+  UINTN       Pages;
+  UINT8       *TdReport;
 
   VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO  *KeyInfo;
 
-  if (Report == NULL) {
+  if (Report == NULL || ReportSize != sizeof (TDREPORT_STRUCT)) {
     return EFI_INVALID_PARAMETER;
   }
+
+  Pages    = EFI_SIZE_TO_PAGES ((sizeof (TDREPORT_STRUCT) + TDREPORT_ADDITIONAL_DATA_SIZE));
+  TdReport = (UINT8 *)AllocatePages (Pages);
+  if ((TdReport == NULL)) {
+    return EFI_OUT_OF_RESOURCES;
+  }
+
+  ZeroMem (TdReport, EFI_PAGES_TO_SIZE (Pages));
 
   ZeroMem (Digest, SHA384_DIGEST_SIZE);
 
@@ -437,7 +534,7 @@ GetTdReportForVTpmTdCert (
     return EFI_ABORTED;
   }
 
-  AdditionalData = Report + sizeof (TDREPORT_STRUCT);
+  AdditionalData = TdReport + sizeof (TDREPORT_STRUCT);
   if (!Sha384HashAll (KeyInfo->PublicKey, sizeof (TDREPORT_STRUCT), Digest)) {
     DEBUG ((DEBUG_ERROR, "Sha384HashAll failed \n"));
     return EFI_ABORTED;
@@ -445,7 +542,7 @@ GetTdReportForVTpmTdCert (
 
   CopyMem (AdditionalData, Digest, SHA384_DIGEST_SIZE);
   Status = TdGetReport (
-                        Report,
+                        TdReport,
                         sizeof (TDREPORT_STRUCT),
                         AdditionalData,
                         TDREPORT_ADDITIONAL_DATA_SIZE
@@ -453,6 +550,8 @@ GetTdReportForVTpmTdCert (
   if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_ERROR, "%a: TdGetReport failed with %r\n", __FUNCTION__, Status));
   }
+
+  CopyMem(Report, TdReport, sizeof (TDREPORT_STRUCT));
 
   return Status;
 }
@@ -473,8 +572,7 @@ AddTdReportExtension (
 {
   EFI_STATUS      Status;
   INT32           Result;
-  UINTN           Pages;
-  UINT8           *TdReport;
+  UINT8           TdReport[sizeof(TDREPORT_STRUCT)];
   INT32           Nid;
   X509_EXTENSION  *Extension;
   X509V3_CTX      Ctx;
@@ -485,7 +583,6 @@ AddTdReportExtension (
     return EFI_INVALID_PARAMETER;
   }
 
-  TdReport  = NULL;
   Extension = NULL;
   Result    = 0;
   Nid       = 0;
@@ -503,23 +600,16 @@ AddTdReportExtension (
     return EFI_ABORTED;
   }
 
-  Pages    = EFI_SIZE_TO_PAGES ((sizeof (TDREPORT_STRUCT) + TDREPORT_ADDITIONAL_DATA_SIZE));
-  TdReport = (UINT8 *)AllocatePages (Pages);
-  if ((TdReport == NULL)) {
-    return EFI_OUT_OF_RESOURCES;
-  }
-
-  ZeroMem (TdReport, EFI_PAGES_TO_SIZE (Pages));
-
+  ZeroMem(TdReport, sizeof(TdReport));
   // Get the TD_REPORT Data
-  Status = GetTdReportForVTpmTdCert (TdReport);
+  Status = GetTdReportForVTpmTdCert (TdReport, sizeof(TdReport));
   if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_ERROR, "GetTdReportForVTpmTdCert failed with %r\n", Status));
     goto ClearExtensionData;
   }
 
   // Ensure the TD_REPORT data is not changed in VtpmTd Event log.
-  Status = SaveTdReport (TdReport);
+  Status = SaveTdReport (TdReport, sizeof (TdReport));
   if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_ERROR, "SaveTdReport failed with %r\n", Status));
     goto ClearExtensionData;
@@ -571,10 +661,6 @@ AddTdReportExtension (
   Status = EFI_SUCCESS;
 
 ClearExtensionData:
-  if (TdReport) {
-    FreePages (TdReport, Pages);
-  }
-
   if (Data) {
     ASN1_BIT_STRING_free (Data);
   }
@@ -933,22 +1019,19 @@ ClearCertData:
   return Status;
 }
 
-// VOID
-// ClearKeyPair (
-//   VOID
-//   )
-// {
-//   VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO  *KeyInfo;
+VOID
+ClearKeyPair (
+  VOID
+  )
+{
+  OVMF_WORK_AREA  *WorkArea;
 
-//   KeyInfo = NULL;
+  WorkArea = (OVMF_WORK_AREA *)FixedPcdGet32 (PcdOvmfWorkAreaBase);
+  if (WorkArea == NULL) {
+    ASSERT (FALSE);
+  }
 
-//   KeyInfo = GetCertEcP384KeyPairInfo ();
-//   if (KeyInfo == NULL) {
-//     DEBUG ((DEBUG_ERROR, "%a: GetCertEcP384KeyPairInfo failed\n", __FUNCTION__));
-//     return;
-//   }
+  ZeroMem (WorkArea->TdxWorkArea.SecTdxWorkArea.SpdmPublicKey, sizeof(WorkArea->TdxWorkArea.SecTdxWorkArea.SpdmPublicKey));
+  ZeroMem (WorkArea->TdxWorkArea.SecTdxWorkArea.SpdmPrivateKey, sizeof(WorkArea->TdxWorkArea.SecTdxWorkArea.SpdmPrivateKey));
+}
 
-//   ZeroMem (KeyInfo, sizeof (VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO));
-
-//   DEBUG ((DEBUG_INFO, "Clear the Key Pair after StartSession\n"));
-// }

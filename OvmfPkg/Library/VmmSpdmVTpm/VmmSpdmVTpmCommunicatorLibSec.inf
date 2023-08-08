@@ -28,6 +28,7 @@
   VTpmTransport.c
   VTpmRtmr.c
   VTpmTdCert.c
+  VTpmTdEvent.c
 
 [Packages]
   CryptoPkg/CryptoPkg.dec
@@ -37,15 +38,14 @@
   SecurityPkg/SecurityPkg.dec
 
 [Pcd]
-  # gUefiOvmfPkgTokenSpaceGuid.PcdVtpmSecureSessionInfoTableAddr
-  # gUefiOvmfPkgTokenSpaceGuid.PcdVtpmSecureSessionInfoTableSize
   gUefiOvmfPkgTokenSpaceGuid.PcdOvmfWorkAreaBase
   gUefiOvmfPkgTokenSpaceGuid.PcdOvmfSecScratchMemoryBase
   gUefiOvmfPkgTokenSpaceGuid.PcdOvmfSecScratchMemorySize
 
 [Guids]
-#  gEdkiiVTpmSecureSpdmSessionInfoHobGuid
-#  gEdkiiVTpmSharedBufferInfoHobGuid
+  gTpm2StartupLocalityHobGuid
+  gEdkiiHCRTMComponentEventHobGuid
+  gEdkiiVTpmTdTdReportEventHobGuid
 
 [LibraryClasses]
   BaseLib

@@ -59,5 +59,6 @@ SaveCertEcP384KeyPair (
 
 EFI_STATUS
 SaveTdReport(
-  IN UINT8 *TdReport
+  IN UINT8 *TdReport,
+  IN UINT32 TdReportSize
 );

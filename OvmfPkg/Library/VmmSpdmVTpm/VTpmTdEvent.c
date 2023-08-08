@@ -18,7 +18,7 @@
 #include <Library/BaseCryptLib.h>
 #include <Library/HobLib.h>
 #include <Library/Tpm2CommandLib.h>
-
+#include <WorkArea.h>
 #include "VmmSpdmInternal.h"
 
 #define TCG_HCRTMCOMPONENTEVENT_COMPONENT_DESCRIPTION  "TD REPORT"
@@ -65,7 +65,7 @@ CreateStartupLocalityEvent (
 
 
 /**
- * Get the TDREPORT data from the GUID HOB
+ * Get the TDREPORT data from the workarea
  *
  * @param[out] TdReport   The pointer to the TDREPORT buffer
  * 
@@ -74,31 +74,33 @@ CreateStartupLocalityEvent (
 */
 STATIC
 EFI_STATUS
-GetTdReportFromHOB(
-  OUT UINT8  *TdReport
+GetTdReportFromWorkArea(
+  OUT UINT8  *TdReportBuffer,
+  IN  UINT32  TdReportBufferSize
 )
 {
-  EFI_PEI_HOB_POINTERS  GuidHob;
-  UINT16                HobLength;
+  // EFI_PEI_HOB_POINTERS  GuidHob;
+  // UINT16                HobLength;
 
-  if (TdReport == NULL) {
+  if (TdReportBuffer == NULL) {
     return EFI_INVALID_PARAMETER;
   }
 
-  GuidHob.Guid = GetFirstGuidHob (&gEdkiiTdReportInfoHobGuid);
-  if (GuidHob.Guid == NULL) {
-    DEBUG ((DEBUG_ERROR, "%a: The Guid HOB is not found \n", __FUNCTION__));
-    return EFI_NOT_FOUND;
+  OVMF_WORK_AREA  *WorkArea;
+
+
+  WorkArea = (OVMF_WORK_AREA *)FixedPcdGet32 (PcdOvmfWorkAreaBase);
+
+  if (WorkArea == NULL) {
+    ASSERT (FALSE);
   }
 
-  HobLength = sizeof (EFI_HOB_GUID_TYPE) + sizeof (TDREPORT_STRUCT);
-
-  if (GuidHob.Guid->Header.HobLength != HobLength) {
-    DEBUG ((DEBUG_ERROR, "%a: The GuidHob.Guid->Header.HobLength is not equal HobLength, %d vs %d \n", __FUNCTION__, GuidHob.Guid->Header.HobLength, HobLength));
+  if (TdReportBufferSize < sizeof(WorkArea->TdxWorkArea.TdxTdReportInfo))
+  {
     return EFI_OUT_OF_RESOURCES;
   }
 
-  CopyMem(TdReport, GuidHob.Guid + 1, sizeof (TDREPORT_STRUCT));
+  CopyMem(TdReportBuffer, WorkArea->TdxWorkArea.TdxTdReportInfo, sizeof(WorkArea->TdxWorkArea.TdxTdReportInfo));
 
   return EFI_SUCCESS;
 }
@@ -116,35 +118,35 @@ GetTdReportFromHOB(
 STATIC
 EFI_STATUS
 GetAndHashTdReportForVtpmTd (
-  OUT UINT8  **Digest
+  OUT UINT8  *Digest,
+  IN  UINT32  DigestSize
   )
 {
   EFI_STATUS       Status;
-  UINTN            Pages;
   TDREPORT_STRUCT  *TdReport;
-  UINT8            *Report;
+  UINT8            Report[sizeof(TDREPORT_STRUCT)];
   UINT8            HashValue[SHA384_DIGEST_SIZE];
+
+  if ((Digest== NULL ) || (DigestSize != SHA384_DIGEST_SIZE ))
+  {
+    return EFI_INVALID_PARAMETER;
+  }
 
   ZeroMem (HashValue, SHA384_DIGEST_SIZE);
 
-  TdReport       = NULL;
-  Report         = NULL;
+  TdReport = NULL;
 
-  Pages = EFI_SIZE_TO_PAGES (sizeof (TDREPORT_STRUCT));
+  ZeroMem(Report, sizeof(Report));
+  // if ((Report == NULL)) {
+  //   return EFI_OUT_OF_RESOURCES;
+  // }
 
-  Report = (UINT8 *)AllocatePages (Pages);
-  if ((Report == NULL)) {
-    return EFI_OUT_OF_RESOURCES;
-  }
+  // ZeroMem (Report, EFI_PAGES_TO_SIZE (Pages));
 
-  ZeroMem (Report, EFI_PAGES_TO_SIZE (Pages));
-
-  Status = GetTdReportFromHOB (
-                        Report
-                        );
+  Status = GetTdReportFromWorkArea (Report, sizeof(Report));
   if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_ERROR, "%a: GetTdReportFromHOB failed with %r\n", __FUNCTION__, Status));
-    goto CleanReport;
+    DEBUG ((DEBUG_ERROR, "%a: GetTdReportFromWorkArea failed with %r\n", __FUNCTION__, Status));
+    return Status;
   }
 
   TdReport = (TDREPORT_STRUCT *)Report;
@@ -153,18 +155,17 @@ GetAndHashTdReportForVtpmTd (
 
   if (!Sha384HashAll (Report, sizeof (TDREPORT_STRUCT), HashValue)) {
     DEBUG ((DEBUG_ERROR, "Sha384HashAll failed \n"));
-    Status = EFI_ABORTED;
-    goto CleanReport;
+    return EFI_ABORTED;
   }
 
-  *Digest = HashValue;
+  CopyMem(Digest, HashValue, SHA384_DIGEST_SIZE);
 
-CleanReport:
-  if (Report) {
-    FreePages (Report, Pages);
-  }
+// CleanReport:
+//   if (Report) {
+//     FreePages (Report, Pages);
+//   }
 
-  return Status;
+  return EFI_SUCCESS;
 }
 
 /**
@@ -180,7 +181,7 @@ CreateHCRTMComponentEvent (
   )
 {
   EFI_STATUS  Status;
-  UINT8       *Digest;
+  UINT8       Digest[SHA384_DIGEST_SIZE];
   VOID        *GuidHobRawData;
   UINTN       DataLength;
   UINT16      HashAlgo;
@@ -192,7 +193,6 @@ CreateHCRTMComponentEvent (
   TCG_HCRTMComponentDescription *ComponentDescription;
   TCG_HCRTMComponentMeasurement *ComponentMeasurement;
 
-  Digest         = NULL;
   GuidHobRawData = NULL;
   EventBuffer    = NULL;
   Ptr            = NULL;
@@ -200,6 +200,8 @@ CreateHCRTMComponentEvent (
 
   ComponentDescription = NULL;
   ComponentMeasurement = NULL;
+
+  ZeroMem(Digest, SHA384_DIGEST_SIZE);
 
   HCRTMComponentDescriptionStructSize = sizeof(TCG_HCRTMComponentDescription) + sizeof(TCG_HCRTMCOMPONENTEVENT_COMPONENT_DESCRIPTION);
   HCRTMComponentMeasurementStructSize = sizeof(TCG_HCRTMComponentMeasurement) + COMPONENT_MEASUREMENT_SIZE;
@@ -223,7 +225,7 @@ CreateHCRTMComponentEvent (
   }
   ComponentMeasurement->MeasurementFormatType = 0;
 
-  Status = GetAndHashTdReportForVtpmTd (&Digest);
+  Status = GetAndHashTdReportForVtpmTd (Digest, SHA384_DIGEST_SIZE);
 
   if (Digest == NULL || EFI_ERROR(Status)) {
     DEBUG ((DEBUG_ERROR, "GetAndHashTdReportForVtpmTd is failed\n"));
@@ -306,9 +308,9 @@ CreateVtpmTdReportEvenmt (
 
   ZeroMem(&DigestList,sizeof(TPML_DIGEST_VALUES));
 
-  Status = GetTdReportFromHOB (TdReportData);
+  Status = GetTdReportFromWorkArea (TdReportData, sizeof (TdReportData));
   if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_ERROR, "%a: GetTdReportFromHOB failed with %r\n", __FUNCTION__, Status));
+    DEBUG ((DEBUG_ERROR, "%a: GetTdReportFromWorkArea failed with %r\n", __FUNCTION__, Status));
     return Status;
   }
 
@@ -364,32 +366,19 @@ CreateVtpmTdReportEvenmt (
 
 STATIC
 VOID
-ClearTdReportInGuidHOB (
+ClearTdReportInWorkArea (
   VOID
   )
 {
-  EFI_PEI_HOB_POINTERS  GuidHob;
-  UINT16                HobLength;
-  TDREPORT_STRUCT       *TdReport;
+  OVMF_WORK_AREA  *WorkArea;
 
-  TdReport = NULL;
+  WorkArea = (OVMF_WORK_AREA *)FixedPcdGet32 (PcdOvmfWorkAreaBase);
 
-  GuidHob.Guid = GetFirstGuidHob (&gEdkiiTdReportInfoHobGuid);
-  if (GuidHob.Guid == NULL) {
-    DEBUG ((DEBUG_ERROR, "%a: The Guid HOB is not found \n", __FUNCTION__));
-    return;
+  if (WorkArea == NULL) {
+    ASSERT (FALSE);
   }
 
-  HobLength = sizeof (EFI_HOB_GUID_TYPE) + sizeof (TDREPORT_STRUCT);
-
-  if (GuidHob.Guid->Header.HobLength != HobLength) {
-    DEBUG ((DEBUG_ERROR, "%a: The GuidHob.Guid->Header.HobLength is not equal HobLength, %d vs %d \n", __FUNCTION__, GuidHob.Guid->Header.HobLength, HobLength));
-    return;
-  }
-
-  TdReport = (TDREPORT_STRUCT *)(GuidHob.Guid + 1);
-
-  ZeroMem (TdReport, sizeof (TDREPORT_STRUCT));
+  ZeroMem(WorkArea->TdxWorkArea.TdxTdReportInfo, sizeof(WorkArea->TdxWorkArea.TdxTdReportInfo));
 
   DEBUG ((DEBUG_INFO, "Clear the TDREPORT data at the end of CreateVtpmTdInitialEvents\n"));
 }
@@ -430,7 +419,7 @@ CreateVtpmTdInitialEvents (
   }
 
 ClearTdReprot:
-  ClearTdReportInGuidHOB ();
+  ClearTdReportInWorkArea ();
 
   return Status;
 }

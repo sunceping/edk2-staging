@@ -22,7 +22,6 @@
 #include <Library/BaseCryptLib.h>
 #include <IndustryStandard/Tdx.h>
 #include <Library/MemEncryptTdxLib.h>
-#include <WorkArea.h>
 
 /**
  * Calculate the buffers' size of a VmmSpdmContext.
@@ -264,16 +263,6 @@ VmmSpdmVTpmIsConnected (
   }
 }
 
-// EFI_STATUS
-// EFIAPI
-// VmmSpdmVTpmSupported (
-//   VOID
-//   )
-// {
-//   return TdQueryServiceForVtpm ();
-// }
-
-
 /**
  * Connect to VmmSpdm responder.
  * After connection, the SecuredSpdmSession is exported and saved in a GuidHob.
@@ -358,11 +347,11 @@ VmmSpdmVTpmConnect (
     goto CleanContext;
   }
 
-  // Status = CreateVtpmTdInitialEvents ();
-  // if (EFI_ERROR (Status)) {
-  //   Status = EFI_ABORTED;
-  //   DestroySession = TRUE;
-  // } 
+  Status = CreateVtpmTdInitialEvents ();
+  if (EFI_ERROR (Status)) {
+    Status = EFI_ABORTED;
+    DestroySession = TRUE;
+  } 
 
 CleanContext:
   if (Status == EFI_SUCCESS){
@@ -448,93 +437,5 @@ VtpmAllocateSharedBuffer (
 {
   ASSERT (EFI_PAGES_TO_SIZE (Pages) < SIZE_2MB);
   *SharedBuffer = (UINT8 *)(UINTN)(FixedPcdGet32 (PcdOvmfSecScratchMemoryBase) + SIZE_4MB);
-  return EFI_SUCCESS;
-}
-
-VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO *
-GetCertEcP384KeyPairInfo (
-  VOID
-  )
-{
-  VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO  *KeyPair;
-  OVMF_WORK_AREA                  *WorkArea;
-
-  //
-  // Create a Guid hob to save SecuredSpdmSessionInfo
-  //
-  WorkArea = (OVMF_WORK_AREA *)FixedPcdGet32 (PcdOvmfWorkAreaBase);
-  if (WorkArea == NULL) {
-    ASSERT (FALSE);
-    return NULL;
-  }
-
-  KeyPair = (VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO *)(UINTN)WorkArea->TdxWorkArea.SecTdxWorkArea.SpdmPublicKey;
-
-  return KeyPair;
-}
-
-/**
- * Save the key pair.
- *
- * @param  PubKey          A pointer to the public key data.
- * @param  PubKeySize      The size of the public key data.
- * @param  PriKey          A pointer to the private key data.
- * @param  PriKeySize      The size of the private key data.
- *
- * @return EFI_SUCCESS    Save key pair data was successfully.
- * @return Others         Some errors.
-*/
-EFI_STATUS
-SaveCertEcP384KeyPair (
-  IN UINT8   *PubKey,
-  IN UINT32  PubKeySize,
-  IN UINT8   *PriKey,
-  IN UINT32  PriKeySize
-  )
-{
-  OVMF_WORK_AREA  *WorkArea;
-
-  //
-  // Create a Guid hob to save SecuredSpdmSessionInfo
-  //
-  WorkArea = (OVMF_WORK_AREA *)FixedPcdGet32 (PcdOvmfWorkAreaBase);
-  if (WorkArea == NULL) {
-    ASSERT (FALSE);
-  }
-
-  ASSERT (sizeof (WorkArea->TdxWorkArea.SecTdxWorkArea.SpdmPublicKey) == PubKeySize);
-  ASSERT (sizeof (WorkArea->TdxWorkArea.SecTdxWorkArea.SpdmPrivateKey) == PriKeySize);
-
-  CopyMem (WorkArea->TdxWorkArea.SecTdxWorkArea.SpdmPublicKey, PubKey, PubKeySize);
-  CopyMem (WorkArea->TdxWorkArea.SecTdxWorkArea.SpdmPrivateKey, PriKey, PriKeySize);
-
-  return EFI_SUCCESS;
-}
-
-VOID
-ClearKeyPair (
-  VOID
-  )
-{
-  OVMF_WORK_AREA  *WorkArea;
-
-  //
-  // Create a Guid hob to save SecuredSpdmSessionInfo
-  //
-  WorkArea = (OVMF_WORK_AREA *)FixedPcdGet32 (PcdOvmfWorkAreaBase);
-  if (WorkArea == NULL) {
-    ASSERT (FALSE);
-  }
-
-  ZeroMem (WorkArea->TdxWorkArea.SecTdxWorkArea.SpdmPublicKey, sizeof(WorkArea->TdxWorkArea.SecTdxWorkArea.SpdmPublicKey));
-  ZeroMem (WorkArea->TdxWorkArea.SecTdxWorkArea.SpdmPrivateKey, sizeof(WorkArea->TdxWorkArea.SecTdxWorkArea.SpdmPrivateKey));
-}
-
-EFI_STATUS
-SaveTdReport(
-  IN UINT8 *TdReport
-)
-{
-  // ASSERT (FALSE);
   return EFI_SUCCESS;
 }

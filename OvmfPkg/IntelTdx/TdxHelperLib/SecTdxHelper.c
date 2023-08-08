@@ -805,6 +805,47 @@ TdxHelperProcessTdHob (
   return Status;
 }
 
+
+STATIC
+EFI_STATUS
+HashAndExtendToRtmr (
+  IN UINT32  RtmrIndex,
+  IN VOID    *DataToHash,
+  IN UINTN   DataToHashLen,
+  OUT UINT8  *Digest,
+  IN  UINTN  DigestLen
+  )
+{
+  EFI_STATUS  Status;
+
+  if ((DataToHash == NULL) || (DataToHashLen == 0)) {
+    return EFI_INVALID_PARAMETER;
+  }
+
+  if ((Digest == NULL) || (DigestLen != SHA384_DIGEST_SIZE)) {
+    return EFI_INVALID_PARAMETER;
+  }
+
+  //
+  // Calculate the sha384 of the data
+  //
+  if (!Sha384HashAll (DataToHash, DataToHashLen, Digest)) {
+    return EFI_ABORTED;
+  }
+
+  //
+  // Extend to RTMR
+  //
+  Status = TdExtendRtmr (
+             (UINT32 *)Digest,
+             SHA384_DIGEST_SIZE,
+             (UINT8)RtmrIndex
+             );
+
+  ASSERT (!EFI_ERROR (Status));
+  return Status;
+}
+
 /**
   In Tdx guest, TdHob is passed from host VMM to guest firmware and it contains
   the information of the memory resource. From the security perspective before
@@ -820,12 +861,12 @@ TdxHelperMeasureTdHob (
   )
 {
   EFI_PEI_HOB_POINTERS  Hob;
-  UINT8                 Hash256[SHA256_DIGEST_SIZE];
   UINT8                 Hash384[SHA384_DIGEST_SIZE];
-  UINT8                 Hash512[SHA512_DIGEST_SIZE];
   OVMF_WORK_AREA        *WorkArea;
   VOID                  *TdHob;
-  UINTN                 TdHobSize;
+  // UINTN                 TdHobSize;
+  EFI_STATUS            Status;
+
 
   TdHob   = (VOID *)(UINTN)FixedPcdGet32 (PcdOvmfSecGhcbBase);
   Hob.Raw = (UINT8 *)TdHob;
@@ -836,16 +877,26 @@ TdxHelperMeasureTdHob (
   while (!END_OF_HOB_LIST (Hob)) {
     Hob.Raw = GET_NEXT_HOB (Hob);
   }
+  Status = HashAndExtendToRtmr (
+             0,
+             (UINT8 *)TdHob,
+             (UINTN)((UINT8 *)Hob.Raw - (UINT8 *)TdHob),
+             Hash384,
+             SHA384_DIGEST_SIZE
+             );
 
+  if (EFI_ERROR (Status)) {
+    return Status;
+  }
   //
   // Calculate the sha256/384/512 of the data
   //
-  TdHobSize = (UINTN)((UINT8 *)Hob.Raw - (UINT8 *)TdHob);
-  if (!Sha256HashAll (TdHob, TdHobSize, Hash256) ||
-      !Sha384HashAll (TdHob, TdHobSize, Hash384) ||
-      !Sha512HashAll (TdHob, TdHobSize, Hash384)) {
-    return EFI_ABORTED;
-  }
+  // TdHobSize = (UINTN)((UINT8 *)Hob.Raw - (UINT8 *)TdHob);
+  // if (!Sha256HashAll (TdHob, TdHobSize, Hash256) ||
+  //     !Sha384HashAll (TdHob, TdHobSize, Hash384) ||
+  //     !Sha512HashAll (TdHob, TdHobSize, Hash384)) {
+  //   return EFI_ABORTED;
+  // }
 
   //
   // This function is called in SEC phase and at that moment the Hob service
@@ -857,9 +908,7 @@ TdxHelperMeasureTdHob (
   }
 
   WorkArea->TdxWorkArea.SecTdxWorkArea.TdxMeasurementsData.MeasurementsBitmap |= TDX_MEASUREMENT_TDHOB_BITMASK;
-  CopyMem (WorkArea->TdxWorkArea.SecTdxWorkArea.TdxMeasurementsData.TdHobHash256Value, Hash256, SHA256_DIGEST_SIZE);
-  CopyMem (WorkArea->TdxWorkArea.SecTdxWorkArea.TdxMeasurementsData.TdHobHash384Value, Hash384, SHA384_DIGEST_SIZE);
-  CopyMem (WorkArea->TdxWorkArea.SecTdxWorkArea.TdxMeasurementsData.TdHobHash512Value, Hash512, SHA512_DIGEST_SIZE);
+  CopyMem (WorkArea->TdxWorkArea.SecTdxWorkArea.TdxMeasurementsData.TdHobDigest.TdxHash384Value, Hash384, SHA384_DIGEST_SIZE);
 
   return EFI_SUCCESS;
 }
@@ -878,21 +927,25 @@ TdxHelperMeasureCfvImage (
   VOID
   )
 {
-  UINT8           Hash256[SHA256_DIGEST_SIZE];
   UINT8           Hash384[SHA384_DIGEST_SIZE];
-  UINT8           Hash512[SHA512_DIGEST_SIZE];
   UINTN           CfvSize;
   UINT8           *CfvImage;
-
+  EFI_STATUS      Status;
   OVMF_WORK_AREA  *WorkArea;
 
   CfvImage = (UINT8 *)(UINTN)PcdGet32 (PcdOvmfFlashNvStorageVariableBase);
   CfvSize = (UINT64)PcdGet32 (PcdCfvRawDataSize);
 
-  if (!Sha256HashAll (CfvImage, CfvSize, Hash256) ||
-      !Sha384HashAll (CfvImage, CfvSize, Hash384) ||
-      !Sha512HashAll (CfvImage, CfvSize, Hash384)) {
-    return EFI_ABORTED;
+  Status = HashAndExtendToRtmr (
+             0,
+             (UINT8 *)CfvImage,
+             CfvSize,
+             Hash384,
+             SHA384_DIGEST_SIZE
+             );
+
+  if (EFI_ERROR (Status)) {
+    return Status;
   }
 
   //
@@ -906,9 +959,7 @@ TdxHelperMeasureCfvImage (
 
   WorkArea->TdxWorkArea.SecTdxWorkArea.TdxMeasurementsData.MeasurementsBitmap |= TDX_MEASUREMENT_CFVIMG_BITMASK;
 
-  CopyMem (WorkArea->TdxWorkArea.SecTdxWorkArea.TdxMeasurementsData.CfvImgHash256Value, Hash256, SHA256_DIGEST_SIZE);
-  CopyMem (WorkArea->TdxWorkArea.SecTdxWorkArea.TdxMeasurementsData.CfvImgHash384Value, Hash384, SHA384_DIGEST_SIZE);
-  CopyMem (WorkArea->TdxWorkArea.SecTdxWorkArea.TdxMeasurementsData.CfvImgHash512Value, Hash512, SHA512_DIGEST_SIZE);
+  CopyMem (WorkArea->TdxWorkArea.SecTdxWorkArea.TdxMeasurementsData.CfvImgDigest.TdxHash384Value, Hash384, SHA384_DIGEST_SIZE);
 
   return EFI_SUCCESS;
 }

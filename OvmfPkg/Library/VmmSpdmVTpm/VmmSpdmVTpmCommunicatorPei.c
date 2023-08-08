@@ -201,6 +201,60 @@
 //   return EFI_SUCCESS;
 // }
 
+STATIC
+EFI_STATUS
+ExportSecureSpdmSessionInfos (
+  VMM_SPDM_CONTEXT  *Context
+  )
+{
+  UINTN                           SessionKeysSize;
+  VOID                            *SecureMessageContext;
+  SPDM_AEAD_SESSION_KEYS          SessionKeys;
+  VTPM_SECURE_SESSION_INFO_TABLE  *InfoTable;
+  OVMF_WORK_AREA                  *WorkArea;
+
+  if ((Context == NULL)
+      || (Context->SessionId == 0)
+      || (Context->SpdmContext == NULL))
+  {
+    return EFI_INVALID_PARAMETER;
+  }
+
+  SecureMessageContext = SpdmGetSecuredMessageContextViaSessionId (Context->SpdmContext, Context->SessionId);
+  if (SecureMessageContext == NULL) {
+    return EFI_INVALID_PARAMETER;
+  }
+
+  SessionKeysSize = sizeof (SPDM_AEAD_SESSION_KEYS);
+  ZeroMem (&SessionKeys, SessionKeysSize);
+  if (!SpdmSecuredMessageExportSessionKeys (SecureMessageContext, &SessionKeys, &SessionKeysSize)) {
+    return EFI_INVALID_PARAMETER;
+  }
+
+  if ((SessionKeys.AeadKeySize != AEAD_AES_256_GCM_KEY_LEN) ||
+      (SessionKeys.AeadIvSize != AEAD_AES_256_GCM_IV_LEN))
+  {
+    return EFI_INVALID_PARAMETER;
+  }
+
+  WorkArea = (OVMF_WORK_AREA *)FixedPcdGet32 (PcdOvmfWorkAreaBase);
+  if (WorkArea == NULL) {
+    ASSERT (FALSE);
+    return EFI_UNSUPPORTED;
+  }
+
+  ASSERT (sizeof (WorkArea->TdxWorkArea.SecTdxWorkArea.SpdmSecureSessionInfo) >= VTPM_SECURE_SESSION_INFO_TABLE_SIZE);
+
+  InfoTable                          = (VTPM_SECURE_SESSION_INFO_TABLE *)(UINTN)WorkArea->TdxWorkArea.SecTdxWorkArea.SpdmSecureSessionInfo;
+  InfoTable->SessionId               = Context->SessionId;
+  InfoTable->TransportBindingVersion = VTPM_SECURE_SESSION_TRANSPORT_BINDING_VERSION;
+  InfoTable->AEADAlgorithm           = AEAD_ALGORITHM_AES_256_GCM;
+
+  CopyMem (InfoTable + 1, &SessionKeys.keys, sizeof (SPDM_AEAD_AES_256_GCM_KEY_IV_INFO));
+
+  return EFI_SUCCESS;
+}
+
 /**
  * Disconnect from VmmSpdm responder.
 */
@@ -275,9 +329,7 @@ VmmSpdmVTpmConnect (
   VOID
   )
 {
-  return VmmSpdmVTpmIsConnected ();
-
-#if 0  
+  // return VmmSpdmVTpmIsConnected ();
   VMM_SPDM_CONTEXT  *Context;
   UINT32            Pages;
   EFI_STATUS        Status;
@@ -387,7 +439,7 @@ CleanContext:
   }
 
   return Status;
-#endif  
+
 }
 
 /**
@@ -588,148 +640,103 @@ VmmSpdmVTpmClearSharedBit (
 
 }
 
-/**
- * Save the TD_REPORT data to the GUID HOB.
- *
- * @param  TdReport        A pointer to the TDREPORT data.
- *
- * @return EFI_SUCCESS    Save TD_REPORT data was successfully.
- * @return Others         Some errors.
-*/
-EFI_STATUS
-SaveTdReport(
-  IN UINT8 *TdReport
-)
-{
-  VOID   *GuidHobRawData;
-  UINTN  DataLength;
+// /**
+//  * Save the key pair to the GUID HOB.
+//  *
+//  * @param  PubKey          A pointer to the public key data.
+//  * @param  PubKeySize      The size of the public key data.
+//  * @param  PriKey          A pointer to the private key data.
+//  * @param  PriKeySize      The size of the private key data.
+//  *
+//  * @return EFI_SUCCESS    Save key pair data was successfully.
+//  * @return Others         Some errors.
+// */
+// EFI_STATUS
+// SaveCertEcP384KeyPair (
+//   IN UINT8   *PubKey,
+//   IN UINT32  PubKeySize,
+//   IN UINT8   *PriKey,
+//   IN UINT32  PriKeySize
+//   )
+// {
+//   VOID   *GuidHobRawData;
+//   UINTN  DataLength;
+//   UINT8  *Ptr = NULL;
 
-  EFI_PEI_HOB_POINTERS  GuidHob;
+//   if ((PubKey == NULL) || (PubKeySize < 1)) {
+//     return EFI_INVALID_PARAMETER;
+//   }
 
-  if (TdReport == NULL) {
-    return EFI_INVALID_PARAMETER;
-  }
+//   if ((PriKey == NULL) || (PriKeySize < 1)) {
+//     return EFI_INVALID_PARAMETER;
+//   }
 
-  GuidHob.Guid = GetFirstGuidHob (&gEdkiiTdReportInfoHobGuid);
-  if (GuidHob.Guid != NULL) {
-    DEBUG ((DEBUG_ERROR, "%a: The Guid HOB should be NULL \n", __FUNCTION__));
-    return EFI_UNSUPPORTED;
-  }
+//   //
+//   // Create a Guid hob to save the Key Pair info
+//   //
+//   DataLength = sizeof (VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO);
+//   if ((PubKeySize + PriKeySize) > DataLength) {
+//     DEBUG ((DEBUG_ERROR, "%a : The Key pair size should be equal to the DataLength \n", __FUNCTION__));
+//     return EFI_OUT_OF_RESOURCES;
+//   }
 
-  DataLength = sizeof (TDREPORT_STRUCT);
+//   GuidHobRawData = BuildGuidHob (
+//                                  &gEdkiiVTpmTdX509CertKeyInfoHobGuid,
+//                                  DataLength
+//                                  );
 
-  GuidHobRawData = BuildGuidHob (
-                                 &gEdkiiTdReportInfoHobGuid,
-                                 DataLength
-                                 );
+//   if (GuidHobRawData == NULL) {
+//     DEBUG ((DEBUG_ERROR, "%a : BuildGuidHob failed \n", __FUNCTION__));
+//     return EFI_OUT_OF_RESOURCES;
+//   }
 
-  if (GuidHobRawData == NULL) {
-    DEBUG ((DEBUG_ERROR, "%a : BuildGuidHob failed \n", __FUNCTION__));
-    return EFI_OUT_OF_RESOURCES;
-  }
+//   Ptr = GuidHobRawData;
+//   CopyMem (Ptr, PubKey, PubKeySize);
+//   CopyMem (Ptr + PubKeySize, PriKey, PriKeySize);
 
-  CopyMem(GuidHobRawData,TdReport, sizeof (TDREPORT_STRUCT));
+//   return EFI_SUCCESS;
+// }
 
-  return EFI_SUCCESS;
-}
+// VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO *
+// GetCertEcP384KeyPairInfo (
+//   VOID
+//   )
+// {
+//   EFI_PEI_HOB_POINTERS  GuidHob;
+//   UINT16                HobLength;
 
-/**
- * Save the key pair to the GUID HOB.
- *
- * @param  PubKey          A pointer to the public key data.
- * @param  PubKeySize      The size of the public key data.
- * @param  PriKey          A pointer to the private key data.
- * @param  PriKeySize      The size of the private key data.
- *
- * @return EFI_SUCCESS    Save key pair data was successfully.
- * @return Others         Some errors.
-*/
-EFI_STATUS
-SaveCertEcP384KeyPair (
-  IN UINT8   *PubKey,
-  IN UINT32  PubKeySize,
-  IN UINT8   *PriKey,
-  IN UINT32  PriKeySize
-  )
-{
-  VOID   *GuidHobRawData;
-  UINTN  DataLength;
-  UINT8  *Ptr = NULL;
+//   GuidHob.Guid = GetFirstGuidHob (&gEdkiiVTpmTdX509CertKeyInfoHobGuid);
+//   if (GuidHob.Guid == NULL) {
+//     DEBUG ((DEBUG_ERROR, "%a: The Guid HOB is not found \n", __FUNCTION__));
+//     return NULL;
+//   }
 
-  if ((PubKey == NULL) || (PubKeySize < 1)) {
-    return EFI_INVALID_PARAMETER;
-  }
+//   HobLength = sizeof (EFI_HOB_GUID_TYPE) + sizeof (VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO);
 
-  if ((PriKey == NULL) || (PriKeySize < 1)) {
-    return EFI_INVALID_PARAMETER;
-  }
+//   if (GuidHob.Guid->Header.HobLength != HobLength) {
+//     DEBUG ((DEBUG_ERROR, "%a: The GuidHob.Guid->Header.HobLength is not equal HobLength, %d vs %d \n", __FUNCTION__, GuidHob.Guid->Header.HobLength, HobLength));
+//     return NULL;
+//   }
 
-  //
-  // Create a Guid hob to save the Key Pair info
-  //
-  DataLength = sizeof (VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO);
-  if ((PubKeySize + PriKeySize) > DataLength) {
-    DEBUG ((DEBUG_ERROR, "%a : The Key pair size should be equal to the DataLength \n", __FUNCTION__));
-    return EFI_OUT_OF_RESOURCES;
-  }
+//   return (VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO *)(GuidHob.Guid + 1);
+// }
 
-  GuidHobRawData = BuildGuidHob (
-                                 &gEdkiiVTpmTdX509CertKeyInfoHobGuid,
-                                 DataLength
-                                 );
+// VOID
+// ClearKeyPair (
+//   VOID
+//   )
+// {
+//   VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO  *KeyInfo;
 
-  if (GuidHobRawData == NULL) {
-    DEBUG ((DEBUG_ERROR, "%a : BuildGuidHob failed \n", __FUNCTION__));
-    return EFI_OUT_OF_RESOURCES;
-  }
+//   KeyInfo = NULL;
 
-  Ptr = GuidHobRawData;
-  CopyMem (Ptr, PubKey, PubKeySize);
-  CopyMem (Ptr + PubKeySize, PriKey, PriKeySize);
+//   KeyInfo = GetCertEcP384KeyPairInfo ();
+//   if (KeyInfo == NULL) {
+//     DEBUG ((DEBUG_ERROR, "%a: GetCertEcP384KeyPairInfo failed\n", __FUNCTION__));
+//     return;
+//   }
 
-  return EFI_SUCCESS;
-}
+//   ZeroMem (KeyInfo, sizeof (VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO));
 
-VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO *
-GetCertEcP384KeyPairInfo (
-  VOID
-  )
-{
-  EFI_PEI_HOB_POINTERS  GuidHob;
-  UINT16                HobLength;
-
-  GuidHob.Guid = GetFirstGuidHob (&gEdkiiVTpmTdX509CertKeyInfoHobGuid);
-  if (GuidHob.Guid == NULL) {
-    DEBUG ((DEBUG_ERROR, "%a: The Guid HOB is not found \n", __FUNCTION__));
-    return NULL;
-  }
-
-  HobLength = sizeof (EFI_HOB_GUID_TYPE) + sizeof (VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO);
-
-  if (GuidHob.Guid->Header.HobLength != HobLength) {
-    DEBUG ((DEBUG_ERROR, "%a: The GuidHob.Guid->Header.HobLength is not equal HobLength, %d vs %d \n", __FUNCTION__, GuidHob.Guid->Header.HobLength, HobLength));
-    return NULL;
-  }
-
-  return (VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO *)(GuidHob.Guid + 1);
-}
-
-VOID
-ClearKeyPair (
-  VOID
-  )
-{
-  VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO  *KeyInfo;
-
-  KeyInfo = NULL;
-
-  KeyInfo = GetCertEcP384KeyPairInfo ();
-  if (KeyInfo == NULL) {
-    DEBUG ((DEBUG_ERROR, "%a: GetCertEcP384KeyPairInfo failed\n", __FUNCTION__));
-    return;
-  }
-
-  ZeroMem (KeyInfo, sizeof (VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO));
-
-  DEBUG ((DEBUG_INFO, "Clear the Key Pair after StartSession\n"));
-}
+//   DEBUG ((DEBUG_INFO, "Clear the Key Pair after StartSession\n"));
+// }

@@ -45,6 +45,7 @@
   BaseLib
   DebugLib
   BaseMemoryLib
+  BaseCryptLib
   PcdLib
   UefiCpuLib
   DebugAgentLib
@@ -89,3 +90,5 @@
   gEfiSecurityPkgTokenSpaceGuid.PcdTpm2HashMask
   gEfiSecurityPkgTokenSpaceGuid.PcdTcg2HashAlgorithmBitmap
   gUefiOvmfPkgTokenSpaceGuid.PcdOvmfWorkAreaBase
+  gUefiOvmfPkgTokenSpaceGuid.PcdOvmfFlashNvStorageVariableBase
+  gUefiOvmfPkgTokenSpaceGuid.PcdCfvRawDataSize

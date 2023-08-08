@@ -37,6 +37,12 @@
   DEFINE BUILD_SHELL             = TRUE
 
   #
+  # vTPM Should be enabled for production
+  #
+  DEFINE TPM2_ENABLE             = TRUE
+  DEFINE VTPM_ENABLE             = TRUE
+
+  #
   # Device drivers
   #
   DEFINE PVSCSI_ENABLE           = FALSE
