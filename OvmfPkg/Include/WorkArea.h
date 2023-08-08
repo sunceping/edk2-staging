@@ -86,8 +86,8 @@ typedef struct _TDX_MEASUREMENT_DIGEST{
 
 typedef struct _TDX_MEASUREMENTS_DATA {
   UINT32    MeasurementsBitmap;
-  TDX_MEASUREMENT_DIGEST     TdHobDigest;
-  TDX_MEASUREMENT_DIGEST     CfvImgDigest;
+  UINT8     TdHobHashValue[SHA384_DIGEST_SIZE];
+  UINT8     CfvImgHashValue[SHA384_DIGEST_SIZE];
 } TDX_MEASUREMENTS_DATA;
 
 //

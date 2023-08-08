@@ -908,7 +908,7 @@ TdxHelperMeasureTdHob (
   }
 
   WorkArea->TdxWorkArea.SecTdxWorkArea.TdxMeasurementsData.MeasurementsBitmap |= TDX_MEASUREMENT_TDHOB_BITMASK;
-  CopyMem (WorkArea->TdxWorkArea.SecTdxWorkArea.TdxMeasurementsData.TdHobDigest.TdxHash384Value, Hash384, SHA384_DIGEST_SIZE);
+  CopyMem (WorkArea->TdxWorkArea.SecTdxWorkArea.TdxMeasurementsData.TdHobHashValue, Hash384, SHA384_DIGEST_SIZE);
 
   return EFI_SUCCESS;
 }
@@ -959,7 +959,7 @@ TdxHelperMeasureCfvImage (
 
   WorkArea->TdxWorkArea.SecTdxWorkArea.TdxMeasurementsData.MeasurementsBitmap |= TDX_MEASUREMENT_CFVIMG_BITMASK;
 
-  CopyMem (WorkArea->TdxWorkArea.SecTdxWorkArea.TdxMeasurementsData.CfvImgDigest.TdxHash384Value, Hash384, SHA384_DIGEST_SIZE);
+  CopyMem (WorkArea->TdxWorkArea.SecTdxWorkArea.TdxMeasurementsData.CfvImgHashValue, Hash384, SHA384_DIGEST_SIZE);
 
   return EFI_SUCCESS;
 }

@@ -28,100 +28,100 @@
 /**
  * Calculate the buffers' size of a VmmSpdmContext.
  */
-// STATIC
-// UINTN
-// EFIAPI
-// VmmSpmdCalculateSize (
-//   VMM_SPDM_CONTEXT_BUFFERS_SIZE  *ContextBuffersSize
-//   )
-// {
-//   UINTN  SpdmContextSize;
+STATIC
+UINTN
+EFIAPI
+VmmSpmdCalculateSize (
+  VMM_SPDM_CONTEXT_BUFFERS_SIZE  *ContextBuffersSize
+  )
+{
+  UINTN  SpdmContextSize;
 
-//   if (ContextBuffersSize == NULL) {
-//     return EFI_INVALID_PARAMETER;
-//   }
+  if (ContextBuffersSize == NULL) {
+    return EFI_INVALID_PARAMETER;
+  }
 
-//   SpdmContextSize = SpdmGetContextSize ();
+  SpdmContextSize = SpdmGetContextSize ();
 
-//   ContextBuffersSize->SpdmContextSize       = SpdmContextSize;
-//   ContextBuffersSize->ScratchBufferSize     = SpdmGetSizeofRequiredScratchBuffer (NULL);
-//   ContextBuffersSize->SendReceiveBufferSize = 0x1264; // TODO find the macro
+  ContextBuffersSize->SpdmContextSize       = SpdmContextSize;
+  ContextBuffersSize->ScratchBufferSize     = SpdmGetSizeofRequiredScratchBuffer (NULL);
+  ContextBuffersSize->SendReceiveBufferSize = 0x1264; // TODO find the macro
 
-//   return EFI_SUCCESS;
-// }
+  return EFI_SUCCESS;
+}
 
-// STATIC
-// EFI_STATUS
-// FreeMemoryForVmmSpdmContext (
-//   VMM_SPDM_CONTEXT  *Context,
-//   UINT32            Pages
-//   )
-// {
-//   if (Context == NULL) {
-//     return EFI_INVALID_PARAMETER;
-//   }
+STATIC
+EFI_STATUS
+FreeMemoryForVmmSpdmContext (
+  VMM_SPDM_CONTEXT  *Context,
+  UINT32            Pages
+  )
+{
+  if (Context == NULL) {
+    return EFI_INVALID_PARAMETER;
+  }
 
-//   FreePages (Context, Pages);
+  FreePages (Context, Pages);
 
-//   return EFI_SUCCESS;
-// }
+  return EFI_SUCCESS;
+}
 
-// STATIC
-// EFI_STATUS
-// AllocateMemoryForVmmSpdmContext (
-//   VOID    **ppContext,
-//   UINT32  *Pages
-//   )
-// {
-//   VMM_SPDM_CONTEXT               *Context;
-//   VMM_SPDM_CONTEXT_BUFFERS_SIZE  BuffersSize = { 0 };
-//   UINT32                         Size;
-//   UINT32                         TotalPages;
-//   UINT8                          *Ptr;
+STATIC
+EFI_STATUS
+AllocateMemoryForVmmSpdmContext (
+  VOID    **ppContext,
+  UINT32  *Pages
+  )
+{
+  VMM_SPDM_CONTEXT               *Context;
+  VMM_SPDM_CONTEXT_BUFFERS_SIZE  BuffersSize = { 0 };
+  UINT32                         Size;
+  UINT32                         TotalPages;
+  UINT8                          *Ptr;
 
-//   VmmSpmdCalculateSize (&BuffersSize);
-//   TotalPages  = EFI_SIZE_TO_PAGES (sizeof (VMM_SPDM_CONTEXT));
-//   TotalPages += EFI_SIZE_TO_PAGES (BuffersSize.SpdmContextSize);
-//   TotalPages += EFI_SIZE_TO_PAGES (BuffersSize.ScratchBufferSize);
-//   TotalPages += EFI_SIZE_TO_PAGES (BuffersSize.SendReceiveBufferSize);
+  VmmSpmdCalculateSize (&BuffersSize);
+  TotalPages  = EFI_SIZE_TO_PAGES (sizeof (VMM_SPDM_CONTEXT));
+  TotalPages += EFI_SIZE_TO_PAGES (BuffersSize.SpdmContextSize);
+  TotalPages += EFI_SIZE_TO_PAGES (BuffersSize.ScratchBufferSize);
+  TotalPages += EFI_SIZE_TO_PAGES (BuffersSize.SendReceiveBufferSize);
 
-//   *ppContext = AllocatePages (TotalPages);
-//   if (*ppContext == NULL) {
-//     return EFI_OUT_OF_RESOURCES;
-//   }
+  *ppContext = AllocatePages (TotalPages);
+  if (*ppContext == NULL) {
+    return EFI_OUT_OF_RESOURCES;
+  }
 
-//   *Pages  = TotalPages;
-//   Context = (VMM_SPDM_CONTEXT *)*ppContext;
-//   ZeroMem (Context, EFI_PAGES_TO_SIZE (TotalPages));
+  *Pages  = TotalPages;
+  Context = (VMM_SPDM_CONTEXT *)*ppContext;
+  ZeroMem (Context, EFI_PAGES_TO_SIZE (TotalPages));
 
-//   // Context
-//   Ptr  = (UINT8 *)(UINTN)Context;
-//   Size = ALIGN_VALUE (sizeof (VMM_SPDM_CONTEXT), SIZE_4KB);
+  // Context
+  Ptr  = (UINT8 *)(UINTN)Context;
+  Size = ALIGN_VALUE (sizeof (VMM_SPDM_CONTEXT), SIZE_4KB);
 
-//   // SpdmContext
-//   Ptr                 += Size;
-//   Context->SpdmContext = Ptr;
-//   Size                 = ALIGN_VALUE (BuffersSize.SpdmContextSize, SIZE_4KB);
+  // SpdmContext
+  Ptr                 += Size;
+  Context->SpdmContext = Ptr;
+  Size                 = ALIGN_VALUE (BuffersSize.SpdmContextSize, SIZE_4KB);
 
-//   // ScratchBuffer
-//   Ptr                       += Size;
-//   Context->ScratchBuffer     = Ptr;
-//   Size                       = ALIGN_VALUE (BuffersSize.ScratchBufferSize, SIZE_4KB);
-//   Context->ScratchBufferSize = Size;
+  // ScratchBuffer
+  Ptr                       += Size;
+  Context->ScratchBuffer     = Ptr;
+  Size                       = ALIGN_VALUE (BuffersSize.ScratchBufferSize, SIZE_4KB);
+  Context->ScratchBufferSize = Size;
 
-//   // SendReceiveBuffer
-//   Ptr                           += Size;
-//   Context->SendReceiveBuffer     = Ptr;
-//   Size                           = ALIGN_VALUE (BuffersSize.SendReceiveBufferSize, SIZE_4KB);
-//   Context->SendReceiveBufferSize = Size;
+  // SendReceiveBuffer
+  Ptr                           += Size;
+  Context->SendReceiveBuffer     = Ptr;
+  Size                           = ALIGN_VALUE (BuffersSize.SendReceiveBufferSize, SIZE_4KB);
+  Context->SendReceiveBufferSize = Size;
 
-//   Ptr += Size;
-//   if (((UINTN)Ptr - (UINTN)Context) != EFI_PAGES_TO_SIZE (TotalPages)) {
-//     return EFI_OUT_OF_RESOURCES;
-//   }
+  Ptr += Size;
+  if (((UINTN)Ptr - (UINTN)Context) != EFI_PAGES_TO_SIZE (TotalPages)) {
+    return EFI_OUT_OF_RESOURCES;
+  }
 
-//   return EFI_SUCCESS;
-// }
+  return EFI_SUCCESS;
+}
 
 /**
  * Export SecuredSpdmSessionInfo and save it in a GuidHob.

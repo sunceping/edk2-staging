@@ -848,29 +848,29 @@ SecCoreStartupWithStack (
 
   ProcessLibraryConstructorList (NULL, NULL);
 
- #if defined (TDX_GUEST_SUPPORTED)
-  if (CcProbe () == CcGuestTypeIntelTdx) {
-    //
-    // if vTPM is supported, we shall use vTPM instead of RTMR.
-    //
-    if (!EFI_ERROR (TdxHelperInitSharedBuffer ())) {
-      if (!EFI_ERROR (VmmSpdmVTpmIsSupported ())) {
-        if (!EFI_ERROR (VmmSpdmVTpmConnect ())) {
-          // TODO
-          // Measure TdHob and Cfv to PCR[0]
-          DEBUG ((DEBUG_INFO, "vTPM-TD is connected.\n"));
-        } else {
-          ASSERT (FALSE);
-        }
-      } else {
-        ASSERT (FALSE);
-      }
+//  #if defined (TDX_GUEST_SUPPORTED)
+//   if (CcProbe () == CcGuestTypeIntelTdx) {
+//     //
+//     // if vTPM is supported, we shall use vTPM instead of RTMR.
+//     //
+//     if (!EFI_ERROR (TdxHelperInitSharedBuffer ())) {
+//       if (!EFI_ERROR (VmmSpdmVTpmIsSupported ())) {
+//         if (!EFI_ERROR (VmmSpdmVTpmConnect ())) {
+//           // TODO
+//           // Measure TdHob and Cfv to PCR[0]
+//           DEBUG ((DEBUG_INFO, "vTPM-TD is connected.\n"));
+//         } else {
+//           ASSERT (FALSE);
+//         }
+//       } else {
+//         ASSERT (FALSE);
+//       }
 
-      TdxHelperDropSharedBuffer ();
-    }
-  }
+//       TdxHelperDropSharedBuffer ();
+//     }
+//   }
 
- #endif
+//  #endif
 
   if (!SevEsIsEnabled ()) {
     //

@@ -56,7 +56,7 @@
   MemEncryptSevLib
   CpuExceptionHandlerLib
   CcProbeLib
-  VmmSpdmVTpmCommunicatorLib
+ # VmmSpdmVTpmCommunicatorLib
 
 [Ppis]
   gEfiTemporaryRamSupportPpiGuid                # PPI ALWAYS_PRODUCED

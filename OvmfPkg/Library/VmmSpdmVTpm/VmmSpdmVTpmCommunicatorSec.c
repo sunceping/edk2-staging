@@ -302,7 +302,7 @@ VmmSpdmVTpmConnect (
   if (!EFI_ERROR (Status)) {
     return EFI_SUCCESS;
   } else {
-    DEBUG ((DEBUG_INFO, "vTPM-TD is connected.\n"));
+    DEBUG ((DEBUG_INFO, "vTPM-TD is connecting...\n"));
   }
 
   Status = AllocateMemoryForVmmSpdmContext ((VOID **)&Context, &Pages);

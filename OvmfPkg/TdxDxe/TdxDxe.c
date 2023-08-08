@@ -368,20 +368,22 @@ PrepareForVtpm (
   if (WorkArea == NULL) {
     return EFI_INVALID_PARAMETER;
   }
+  
+  // ASSERT (WorkArea->TdxWorkArea.SecTdxWorkArea.MeasurementType == TDX_MEASUREMENT_TYPE_VTPM);
+  if (WorkArea->TdxWorkArea.SecTdxWorkArea.MeasurementType == TDX_MEASUREMENT_TYPE_VTPM)
+  {
+    // Set PcdTpmInstanceGuid
+    Size   = sizeof (gEfiTpmDeviceInstanceTpm20DtpmGuid);
+    Status = PcdSetPtrS (
+                PcdTpmInstanceGuid,
+                &Size,
+                &gEfiTpmDeviceInstanceTpm20DtpmGuid
+                );
+    ASSERT_EFI_ERROR (Status);
 
-  ASSERT (WorkArea->TdxWorkArea.SecTdxWorkArea.MeasurementType == TDX_MEASUREMENT_TYPE_VTPM);
-
-  // Set PcdTpmInstanceGuid
-  Size   = sizeof (gEfiTpmDeviceInstanceTpm20DtpmGuid);
-  Status = PcdSetPtrS (
-              PcdTpmInstanceGuid,
-              &Size,
-              &gEfiTpmDeviceInstanceTpm20DtpmGuid
-              );
-  ASSERT_EFI_ERROR (Status);
-
-  // Set active pcr banks
-  PcdSet32S (PcdTpm2HashMask, WorkArea->TdxWorkArea.SecTdxWorkArea.Tpm2ActivePcrBanks);
+    // Set active pcr banks
+    PcdSet32S (PcdTpm2HashMask, WorkArea->TdxWorkArea.SecTdxWorkArea.Tpm2ActivePcrBanks);
+  }
 
   Status = gBS->AllocatePages (
                                AllocateAnyPages,
