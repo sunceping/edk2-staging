@@ -11,7 +11,8 @@
 ################################################################################
 
 [Defines]
-!include OvmfPkg/Include/Fdf/OvmfPkgDefines.fdf.inc
+!include OvmfPkg/Include/Fdf/OvmfPkgDefinesIntelTDX.fdf.inc
+#!include OvmfPkg/Include/Fdf/OvmfPkgDefines.fdf.inc
 
 #
 # Build the variable store and the firmware code as one unified flash device
