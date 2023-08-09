@@ -84,3 +84,4 @@
   gUefiOvmfPkgTokenSpaceGuid.PcdOvmfWorkAreaBase
   gEfiSecurityPkgTokenSpaceGuid.PcdTpmInstanceGuid
   gEfiSecurityPkgTokenSpaceGuid.PcdTpm2HashMask
+  gEfiSecurityPkgTokenSpaceGuid.PcdVTpmBaseMeasurement

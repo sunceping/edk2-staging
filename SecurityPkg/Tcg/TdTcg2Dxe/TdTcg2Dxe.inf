@@ -92,7 +92,7 @@
   gEfiMdeModulePkgTokenSpaceGuid.PcdAcpiDefaultOemRevision                  ## CONSUMES
   gEfiMdeModulePkgTokenSpaceGuid.PcdAcpiDefaultCreatorId                    ## CONSUMES
   gEfiMdeModulePkgTokenSpaceGuid.PcdAcpiDefaultCreatorRevision              ## CONSUMES
-  gEfiSecurityPkgTokenSpaceGuid.PcdTpmInstanceGuid
+  gEfiSecurityPkgTokenSpaceGuid.PcdVTpmBaseMeasurement
 
 [Depex]
   # According to PcdTpm2AcpiTableRev definition in SecurityPkg.dec

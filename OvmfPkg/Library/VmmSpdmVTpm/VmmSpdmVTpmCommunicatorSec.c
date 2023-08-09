@@ -109,14 +109,6 @@ VmmSpdmVTpmConnect (
   SessionSuccess   = FALSE;
   DestroySession   = FALSE;
 
-  // If VMCALL_SERVICE_VTPM_GUID is not supported, VMM will not 
-  // allow tdvf to send and receive VTPM messages over an spdm session.
-  // Status = TdQueryServiceForVtpm ();
-  // if (EFI_ERROR (Status)) {
-  //   DEBUG ((DEBUG_ERROR, "TdQueryServiceForVtpm failed with %r \n", Status));
-  //   return Status;
-  // }
-
   // If RTMR[3] is non-zero, the VTPM Spdm session had already been started.
   Status = CheckRtmr3WithTdReport ();
   if (EFI_ERROR (Status)) {
@@ -237,13 +229,22 @@ VmmSpdmVTpmSendReceive (
   )
 {
   VTPM_SECURE_SESSION_INFO_TABLE  *InfoTable;
+  EFI_STATUS                      Status; 
 
   InfoTable = GetSpdmSecuredSessionInfo ();
   if ((InfoTable == NULL) || (InfoTable->SessionId == 0)) {
     return EFI_NOT_STARTED;
   }
 
-  return DoVmmSpdmSendReceive (Request, RequestSize, Response, ResponseSize, InfoTable);
+  Status =  DoVmmSpdmSendReceive (Request, RequestSize, Response, ResponseSize, InfoTable);
+  if (EFI_ERROR(Status)){
+    DEBUG((DEBUG_ERROR, "DoVmmSpdmSendReceive failed with %r\n", Status));
+    //Destroy the session after send-receive failed
+    InfoTable->SessionId = 0;
+  }
+
+  return Status;
+
 }
 
 /**

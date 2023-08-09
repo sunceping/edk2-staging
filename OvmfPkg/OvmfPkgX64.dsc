@@ -741,8 +741,8 @@
     <LibraryClasses>
       NULL|MdeModulePkg/Library/LzmaCustomDecompressLib/LzmaCustomDecompressLib.inf
       NULL|OvmfPkg/IntelTdx/TdxHelperLib/SecTdxHelperLib.inf
-      #BaseCryptLib|CryptoPkg/Library/BaseCryptLib/SecCryptLib.inf
-      BaseCryptLib|CryptoPkg/Library/BaseCryptLib/PeiCryptLib.inf
+      BaseCryptLib|CryptoPkg/Library/BaseCryptLib/SecCryptLib.inf
+#     BaseCryptLib|CryptoPkg/Library/BaseCryptLib/PeiCryptLib.inf
       MemEncryptTdxLib|OvmfPkg/Library/BaseMemEncryptTdxLib/SecBaseMemEncryptTdxLib.inf
 #      !include VmmSpdmLibs.dsc.inc
 #      VmmSpdmVTpmCommunicatorLib|OvmfPkg/Library/VmmSpdmVTpm/VmmSpdmVTpmCommunicatorLibSec.inf

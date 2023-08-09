@@ -188,8 +188,6 @@ HashExtendTdHobToVtpm
     return Status;
   }
 
-  VTpmDumpHex((UINT8*)&DigestList, sizeof(DigestList));
-
   Status = Tpm2PcrExtend(PcrIndex, &DigestList);
   if (EFI_ERROR(Status))
   {
@@ -372,6 +370,7 @@ PeilessStartupDoMeasurement (
       break;
     }
 
+    VTpmEnabled = TRUE;
     if (EFI_ERROR (VmmSpdmVTpmConnect ())) {
       DEBUG ((DEBUG_INFO, "Connect to vTPM-TD failed.\n"));
       break;
@@ -383,7 +382,6 @@ PeilessStartupDoMeasurement (
     }
 
     TpmActivePcrBanks = SyncPcrAllocationsAndPcrMask ();
-    VTpmEnabled = TRUE;
 
   } while (FALSE);
 

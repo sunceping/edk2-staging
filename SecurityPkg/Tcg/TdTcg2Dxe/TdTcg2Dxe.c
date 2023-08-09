@@ -2431,7 +2431,7 @@ DriverEntry (
 
   mImageHandle = ImageHandle;
 
-if (CompareGuid (PcdGetPtr (PcdTpmInstanceGuid), &gEfiTpmDeviceInstanceTpm20DtpmGuid)) {
+if (PcdGetBool (PcdVTpmBaseMeasurement)) {
   DEBUG ((DEBUG_INFO, "It is TPM based measurement.\n"));
   return EFI_UNSUPPORTED;
 }

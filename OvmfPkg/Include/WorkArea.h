@@ -76,14 +76,6 @@ typedef struct _SEV_WORK_AREA {
 #define TDX_MEASUREMENT_TYPE_CC         0x1
 #define TDX_MEASUREMENT_TYPE_VTPM       0x2
 
-typedef struct _TDX_MEASUREMENT_DIGEST{
-  UINT8     TdxHash256Value[SHA256_DIGEST_SIZE];  
-  UINT8     TdxHash384Value[SHA384_DIGEST_SIZE];
-  UINT8     TdxHash512Value[SHA512_DIGEST_SIZE];
-}TDX_MEASUREMENT_DIGEST;
-
-
-
 typedef struct _TDX_MEASUREMENTS_DATA {
   UINT32    MeasurementsBitmap;
   UINT8     TdHobHashValue[SHA384_DIGEST_SIZE];

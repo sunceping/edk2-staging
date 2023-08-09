@@ -325,6 +325,27 @@ GetSpdmSecuredSessionInfo (
 }
 
 STATIC
+VOID
+SetBaseMeasurementPcd(
+  VOID
+  )
+{
+  OVMF_WORK_AREA                  *WorkArea;
+
+  WorkArea = (OVMF_WORK_AREA *)FixedPcdGet32 (PcdOvmfWorkAreaBase);
+  if (WorkArea == NULL) {
+    DEBUG((DEBUG_ERROR, "WorkArea should not be NULL"));
+    CpuDeadLoop();
+  }
+
+  if (WorkArea->TdxWorkArea.SecTdxWorkArea.MeasurementType == TDX_MEASUREMENT_TYPE_VTPM)
+  {
+    PcdSetBoolS(PcdVTpmBaseMeasurement, TRUE);
+  }
+
+}
+
+STATIC
 EFI_STATUS
 PrepareForVtpm (
   VOID
@@ -340,6 +361,8 @@ PrepareForVtpm (
 
   DEBUG ((DEBUG_INFO, ">>%a\n", __FUNCTION__));
 
+  SetBaseMeasurementPcd();
+
   // Check if SecuredSpdmSession is established
   InfoTable = GetSpdmSecuredSessionInfo ();
   if (InfoTable == NULL || InfoTable->SessionId == 0) {
@@ -351,9 +374,12 @@ PrepareForVtpm (
   if (WorkArea == NULL) {
     return EFI_INVALID_PARAMETER;
   }
+
+  UINT32 MeasurementType = WorkArea->TdxWorkArea.SecTdxWorkArea.MeasurementType;
+  UINT32 Tpm2ActivePcrBanks = WorkArea->TdxWorkArea.SecTdxWorkArea.Tpm2ActivePcrBanks;
   
   // ASSERT (WorkArea->TdxWorkArea.SecTdxWorkArea.MeasurementType == TDX_MEASUREMENT_TYPE_VTPM);
-  if (WorkArea->TdxWorkArea.SecTdxWorkArea.MeasurementType == TDX_MEASUREMENT_TYPE_VTPM)
+  if (MeasurementType == TDX_MEASUREMENT_TYPE_VTPM && Tpm2ActivePcrBanks != 0)
   {
     // Set PcdTpmInstanceGuid
     Size   = sizeof (gEfiTpmDeviceInstanceTpm20DtpmGuid);

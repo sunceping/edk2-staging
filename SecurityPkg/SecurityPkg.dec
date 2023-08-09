@@ -545,6 +545,12 @@
 
 [PcdsDynamic, PcdsDynamicEx]
 
+  ## Indicates if vTPM Base Measurement enabled.<BR><BR>
+  #   TRUE  - vTPM Base Measurement.<BR>
+  #   FALSE - RTMR Base Measurement.<BR>
+  # @Prompt Skip RTMR Measurement when vTPM enabled.
+  gEfiSecurityPkgTokenSpaceGuid.PcdVTpmBaseMeasurement|FALSE|BOOLEAN|0x00010028
+
   ## This PCD indicates Hash mask for TPM 2.0. Bit definition strictly follows TCG Algorithm Registry.<BR><BR>
   #  If this bit is set, that means this algorithm is needed to extend to PCR.<BR>
   #  If this bit is clear, that means this algorithm is NOT needed to extend to PCR.<BR>
