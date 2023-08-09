@@ -33,6 +33,7 @@
 #include <TdxAcpiTable.h>
 #include <Library/MemEncryptTdxLib.h>
 #include <IndustryStandard/VTpmTd.h>
+#include <WorkArea.h>
 
 #define ALIGNED_2MB_MASK  0x1fffff
 EFI_HANDLE  mTdxDxeHandle = NULL;
@@ -308,22 +309,21 @@ GetSpdmSecuredSessionInfo (
   VOID
   )
 {
-  EFI_PEI_HOB_POINTERS            GuidHob;
-  UINT16                          HobLength;
+  VTPM_SECURE_SESSION_INFO_TABLE  *InfoTable;
+  OVMF_WORK_AREA                  *WorkArea;
 
-  GuidHob.Guid = GetFirstGuidHob (&gEdkiiVTpmSecureSpdmSessionInfoHobGuid);
-  if (GuidHob.Guid == NULL) {
-    return NULL;
-  }
-
-  HobLength = sizeof (EFI_HOB_GUID_TYPE) + VTPM_SECURE_SESSION_INFO_TABLE_SIZE;
-
-  if (GuidHob.Guid->Header.HobLength != HobLength) {
+  //
+  // Create a Guid hob to save SecuredSpdmSessionInfo
+  //
+  WorkArea = (OVMF_WORK_AREA *)FixedPcdGet32 (PcdOvmfWorkAreaBase);
+  if (WorkArea == NULL) {
     ASSERT (FALSE);
     return NULL;
   }
 
-  return (VTPM_SECURE_SESSION_INFO_TABLE *)(GuidHob.Guid + 1);
+  InfoTable = (VTPM_SECURE_SESSION_INFO_TABLE *)(UINTN)WorkArea->TdxWorkArea.SecTdxWorkArea.SpdmSecureSessionInfo;
+
+  return InfoTable;
 }
 
 STATIC
