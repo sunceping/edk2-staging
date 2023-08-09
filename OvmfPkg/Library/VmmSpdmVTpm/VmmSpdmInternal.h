@@ -10,6 +10,8 @@
 #include <PiDxe.h>
 #include <SpdmReturnStatus.h>
 #include <IndustryStandard/VTpmTd.h>
+#include <Stub/SpdmLibStub.h>
+#include <WorkArea.h>
 
 //
 // Context of VmmSpdm

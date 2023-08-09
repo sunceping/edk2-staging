@@ -142,12 +142,11 @@ ExportSecureSpdmSessionInfos (
   VMM_SPDM_CONTEXT  *Context
   )
 {
-  UINTN                           SessionKeysSize;
+   UINTN                           SessionKeysSize;
   VOID                            *SecureMessageContext;
   SPDM_AEAD_SESSION_KEYS          SessionKeys;
-  UINT16                          DataLength;
-  VOID                            *GuidHobRawData;
   VTPM_SECURE_SESSION_INFO_TABLE  *InfoTable;
+  OVMF_WORK_AREA                  *WorkArea;
 
   if ((Context == NULL)
       || (Context->SessionId == 0)
@@ -173,22 +172,25 @@ ExportSecureSpdmSessionInfos (
     return EFI_INVALID_PARAMETER;
   }
 
-  //
-  // Create a Guid hob to save SecuredSpdmSessionInfo
-  //
-  DataLength = VTPM_SECURE_SESSION_INFO_TABLE_SIZE;
-
-  GuidHobRawData = BuildGuidHob (
-                                 &gEdkiiVTpmSecureSpdmSessionInfoHobGuid,
-                                 DataLength
-                                 );
-
-  if (GuidHobRawData == NULL) {
-    DEBUG ((DEBUG_ERROR, "%a : BuildGuidHob failed \n", __FUNCTION__));
-    return EFI_OUT_OF_RESOURCES;
+  WorkArea = (OVMF_WORK_AREA *)FixedPcdGet32 (PcdOvmfWorkAreaBase);
+  if (WorkArea == NULL) {
+    DEBUG((DEBUG_ERROR, "%a: WorkArea should not be NULL\n", __FUNCTION__));
+    return EFI_UNSUPPORTED;
   }
 
-  InfoTable                          = (VTPM_SECURE_SESSION_INFO_TABLE *)GuidHobRawData;
+  if (sizeof (WorkArea->TdxWorkArea.SecTdxWorkArea.SpdmSecureSessionInfo) < VTPM_SECURE_SESSION_INFO_TABLE_SIZE){
+    DEBUG((
+      DEBUG_ERROR, 
+      "%a: The size of SpdmSecureSessionInfo %d in WorkArea is less than VTPM_SECURE_SESSION_INFO_TABLE_SIZE %d\n",
+      __FUNCTION__,
+      sizeof (WorkArea->TdxWorkArea.SecTdxWorkArea.SpdmSecureSessionInfo),
+      VTPM_SECURE_SESSION_INFO_TABLE_SIZE
+      ));
+    return EFI_UNSUPPORTED;
+  }
+  
+
+  InfoTable                          = (VTPM_SECURE_SESSION_INFO_TABLE *)(UINTN)WorkArea->TdxWorkArea.SecTdxWorkArea.SpdmSecureSessionInfo;
   InfoTable->SessionId               = Context->SessionId;
   InfoTable->TransportBindingVersion = VTPM_SECURE_SESSION_TRANSPORT_BINDING_VERSION;
   InfoTable->AEADAlgorithm           = AEAD_ALGORITHM_AES_256_GCM;
@@ -221,7 +223,8 @@ VmmSpdmVTpmIsSupported (
 }
 
 /**
- * Check if a SecuredSpdmSession is established by finding a specific GuidHob.
+ * Check if a SecuredSpdmSession is established by finding 
+ * the valid Spdm Secure session info in WorkArea.
  *
  * @return EFI_STATUS
  */
@@ -231,26 +234,16 @@ VmmSpdmVTpmIsConnected (
   VOID
   )
 {
-  EFI_PEI_HOB_POINTERS            GuidHob;
-  UINT16                          HobLength;
   VTPM_SECURE_SESSION_INFO_TABLE  *InfoTable;
+  OVMF_WORK_AREA                  *WorkArea;
 
-  // SPDM_AEAD_AES_256_GCM_KEY_IV_INFO *KeyIvInfo;
-
-  // Find gEdkiiVTpmSecureSpdmSessionInfoHobGuid
-  GuidHob.Guid = GetFirstGuidHob (&gEdkiiVTpmSecureSpdmSessionInfoHobGuid);
-  DEBUG ((DEBUG_INFO, ">> GuidHob.Guid = %p\n", GuidHob.Guid));
-  if (GuidHob.Guid == NULL) {
-    return EFI_NOT_FOUND;
+  WorkArea = (OVMF_WORK_AREA *)FixedPcdGet32 (PcdOvmfWorkAreaBase);
+  if (WorkArea == NULL) {
+    DEBUG((DEBUG_ERROR, "%a: WorkArea should not be NULL\n", __FUNCTION__));
+    return EFI_UNSUPPORTED;
   }
 
-  HobLength = sizeof (EFI_HOB_GUID_TYPE) + VTPM_SECURE_SESSION_INFO_TABLE_SIZE;
-
-  if (GuidHob.Guid->Header.HobLength != HobLength) {
-    return EFI_INVALID_PARAMETER;
-  }
-
-  InfoTable = (VTPM_SECURE_SESSION_INFO_TABLE *)(GuidHob.Guid + 1);
+  InfoTable = (VTPM_SECURE_SESSION_INFO_TABLE *)(UINTN)WorkArea->TdxWorkArea.SecTdxWorkArea.SpdmSecureSessionInfo;
   if (InfoTable->SessionId == 0) {
     return EFI_NOT_STARTED;
   }
@@ -399,23 +392,18 @@ GetSpdmSecuredSessionInfo (
   VOID
   )
 {
-  EFI_PEI_HOB_POINTERS  GuidHob;
-  UINT16                HobLength;
+  VTPM_SECURE_SESSION_INFO_TABLE  *InfoTable;
+  OVMF_WORK_AREA                  *WorkArea;
 
-  GuidHob.Guid = GetFirstGuidHob (&gEdkiiVTpmSecureSpdmSessionInfoHobGuid);
-  if (GuidHob.Guid == NULL) {
-    DEBUG ((DEBUG_ERROR, "%a: The Guid HOB is not found \n", __FUNCTION__));
+  WorkArea = (OVMF_WORK_AREA *)FixedPcdGet32 (PcdOvmfWorkAreaBase);
+  if (WorkArea == NULL) {
+    DEBUG((DEBUG_ERROR, "%a: WorkArea should not be NULL\n", __FUNCTION__));
     return NULL;
   }
 
-  HobLength = sizeof (EFI_HOB_GUID_TYPE) + VTPM_SECURE_SESSION_INFO_TABLE_SIZE;
+  InfoTable = (VTPM_SECURE_SESSION_INFO_TABLE *)(UINTN)WorkArea->TdxWorkArea.SecTdxWorkArea.SpdmSecureSessionInfo;
 
-  if (GuidHob.Guid->Header.HobLength != HobLength) {
-    DEBUG ((DEBUG_ERROR, "%a: The GuidHob.Guid->Header.HobLength is not equal HobLength, %x vs %x \n", __FUNCTION__, GuidHob.Guid->Header.HobLength, HobLength));
-    return NULL;
-  }
-
-  return (VTPM_SECURE_SESSION_INFO_TABLE *)(GuidHob.Guid + 1);
+  return InfoTable;
 }
 
 /**
