@@ -45,7 +45,6 @@
 
 [Guids]
   gUefiOvmfPkgPlatformInfoGuid                      ## CONSUMES
-  gEdkiiVTpmSecureSpdmSessionInfoHobGuid
 
 [Protocols]
   gQemuAcpiTableNotifyProtocolGuid                 ## CONSUMES

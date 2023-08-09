@@ -43,7 +43,6 @@
    gUefiOvmfPkgTokenSpaceGuid.PcdOvmfWorkAreaBase
 
 [Guids]
-  gEdkiiVTpmSecureSpdmSessionInfoHobGuid
   gEdkiiVTpmSharedBufferInfoHobGuid
   gTpm2StartupLocalityHobGuid
   gEdkiiHCRTMComponentEventHobGuid
