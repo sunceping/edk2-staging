@@ -349,4 +349,19 @@ struct tdEDKII_VTPM_TD_PRESENT_PROTOCOL {
 
 extern EFI_GUID  gEdkiiVtpmTdPresentProtocolGuid;
 
+#define EDKII_VTPM_BASED_MEASUREMENT_PROTOCOL_GUID  \
+  { 0x908986d7, 0xdcc5, 0x4fa5, { 0x8c, 0x7a, 0xc6, 0x5c, 0x62, 0x31, 0xbe, 0x35 } }
+
+typedef struct tdEDKII_VTPM_BASED_MEASUREMENT_PROTOCOL EDKII_VTPM_BASED_MEASUREMENT_PROTOCOL;
+typedef
+EFI_STATUS
+(EFIAPI *EDKII_VTPM_DETECT)(
+  IN  EDKII_VTPM_BASED_MEASUREMENT_PROTOCOL  *This
+  );
+struct tdEDKII_VTPM_BASED_MEASUREMENT_PROTOCOL {
+  EDKII_VTPM_DETECT   VtpmDetect;
+};
+
+extern EFI_GUID  gEdkiiVtpmBasedMeasurementProtocolGuid;
+
 #endif
