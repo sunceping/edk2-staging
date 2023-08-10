@@ -55,6 +55,7 @@
   gEfiMpInitLibMpDepProtocolGuid
   gEfiMpInitLibUpDepProtocolGuid
   gEdkiiMemoryAcceptProtocolGuid
+  gEdkiiVtpmBasedMeasurementProtocolGuid
 
 [Pcd]
   gUefiOvmfPkgTokenSpaceGuid.PcdPciIoBase
