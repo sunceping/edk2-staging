@@ -46,7 +46,6 @@
   gEdkiiVTpmSharedBufferInfoHobGuid
   gTpm2StartupLocalityHobGuid
   gEdkiiHCRTMComponentEventHobGuid
-  gEdkiiVTpmTdX509CertKeyInfoHobGuid
   gEdkiiTdReportInfoHobGuid
   gEdkiiVTpmTdTdReportEventHobGuid
 

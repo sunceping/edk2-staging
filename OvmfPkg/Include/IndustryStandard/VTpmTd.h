@@ -129,15 +129,6 @@ typedef struct {
 extern EFI_GUID  gEdkiiVTpmSharedBufferInfoHobGuid;
 
 //
-// The Global ID of a GUIDed HOB used to save the X509 Cert Key Pair info
-// {988E1424-08FD-11EE-B8B3-984FEE0146BF}
-//
-#define EDKII_VTPM_TD_X509_CERT_KEY_INFO_HOB_GUID \
-  { 0x988e1424, 0x08fd, 0x11ee, { 0xb8, 0xb3, 0x98, 0x4f, 0xee, 0x01, 0x46, 0xbf } };
-
-extern EFI_GUID  gEdkiiVTpmTdX509CertKeyInfoHobGuid;
-
-//
 // The Global ID of a GUIDed HOB used to save the TDREPORT info
 // {FBBFE4C9-3EE1-13D4-99CE-871068869FD8}
 //
