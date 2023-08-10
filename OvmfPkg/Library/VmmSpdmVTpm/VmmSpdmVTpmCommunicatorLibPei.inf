@@ -46,7 +46,6 @@
   gEdkiiVTpmSharedBufferInfoHobGuid
   gTpm2StartupLocalityHobGuid
   gEdkiiHCRTMComponentEventHobGuid
-  gEdkiiTdReportInfoHobGuid
   gEdkiiVTpmTdTdReportEventHobGuid
 
 [LibraryClasses]
