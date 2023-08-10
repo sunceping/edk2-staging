@@ -183,7 +183,7 @@ GetEcPritKey (
 }
 
 /**
- * Save the key pair to the GUID HOB.
+ * Save the key pair to WorkArea.
  *
  * @param  PubKey          A pointer to the public key data.
  * @param  PubKeySize      The size of the public key data.
@@ -193,49 +193,29 @@ GetEcPritKey (
  * @return EFI_SUCCESS    Save key pair data was successfully.
  * @return Others         Some errors.
 */
-STATIC
 EFI_STATUS
-SaveCertEcP384KeyPairToHOB (
+SaveCertEcP384KeyPair (
   IN UINT8   *PubKey,
   IN UINT32  PubKeySize,
   IN UINT8   *PriKey,
   IN UINT32  PriKeySize
   )
 {
-  VOID   *GuidHobRawData;
-  UINTN  DataLength;
-  UINT8  *Ptr = NULL;
+  OVMF_WORK_AREA  *WorkArea;
 
-  if ((PubKey == NULL) || (PubKeySize < 1)) {
+  WorkArea = (OVMF_WORK_AREA *)FixedPcdGet32 (PcdOvmfWorkAreaBase);
+  if (WorkArea == NULL) {
+    DEBUG((DEBUG_ERROR, "%a: WorkArea should not be NULL\n", __FUNCTION__));
+    return EFI_DEVICE_ERROR;
+  }
+
+  if (sizeof (WorkArea->TdxWorkArea.SecTdxWorkArea.SpdmPublicKey) != PubKeySize ||  sizeof (WorkArea->TdxWorkArea.SecTdxWorkArea.SpdmPrivateKey) != PriKeySize )
+  {
     return EFI_INVALID_PARAMETER;
   }
 
-  if ((PriKey == NULL) || (PriKeySize < 1)) {
-    return EFI_INVALID_PARAMETER;
-  }
-
-  //
-  // Create a Guid hob to save the Key Pair info
-  //
-  DataLength = sizeof (VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO);
-  if ((PubKeySize + PriKeySize) > DataLength) {
-    DEBUG ((DEBUG_ERROR, "%a : The Key pair size should be equal to the DataLength \n", __FUNCTION__));
-    return EFI_OUT_OF_RESOURCES;
-  }
-
-  GuidHobRawData = BuildGuidHob (
-                                 &gEdkiiVTpmTdX509CertKeyInfoHobGuid,
-                                 DataLength
-                                 );
-
-  if (GuidHobRawData == NULL) {
-    DEBUG ((DEBUG_ERROR, "%a : BuildGuidHob failed \n", __FUNCTION__));
-    return EFI_OUT_OF_RESOURCES;
-  }
-
-  Ptr = GuidHobRawData;
-  CopyMem (Ptr, PubKey, PubKeySize);
-  CopyMem (Ptr + PubKeySize, PriKey, PriKeySize);
+  CopyMem (WorkArea->TdxWorkArea.SecTdxWorkArea.SpdmPublicKey, PubKey, PubKeySize);
+  CopyMem (WorkArea->TdxWorkArea.SecTdxWorkArea.SpdmPrivateKey, PriKey, PriKeySize);
 
   return EFI_SUCCESS;
 }
@@ -245,28 +225,23 @@ GetCertEcP384KeyPairInfo (
   VOID
   )
 {
-  EFI_PEI_HOB_POINTERS  GuidHob;
-  UINT16                HobLength;
+  VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO  *KeyPair;
+  OVMF_WORK_AREA                  *WorkArea;
 
-  GuidHob.Guid = GetFirstGuidHob (&gEdkiiVTpmTdX509CertKeyInfoHobGuid);
-  if (GuidHob.Guid == NULL) {
-    DEBUG ((DEBUG_ERROR, "%a: The Guid HOB is not found \n", __FUNCTION__));
+  WorkArea = (OVMF_WORK_AREA *)FixedPcdGet32 (PcdOvmfWorkAreaBase);
+  if (WorkArea == NULL) {
+    ASSERT (FALSE);
     return NULL;
   }
 
-  HobLength = sizeof (EFI_HOB_GUID_TYPE) + sizeof (VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO);
+  KeyPair = (VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO *)(UINTN)WorkArea->TdxWorkArea.SecTdxWorkArea.SpdmPublicKey;
 
-  if (GuidHob.Guid->Header.HobLength != HobLength) {
-    DEBUG ((DEBUG_ERROR, "%a: The GuidHob.Guid->Header.HobLength is not equal HobLength, %d vs %d \n", __FUNCTION__, GuidHob.Guid->Header.HobLength, HobLength));
-    return NULL;
-  }
-
-  return (VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO *)(GuidHob.Guid + 1);
+  return KeyPair;
 }
 
 /**
  * Get the public key and private key info.
- * Save the key pair to the GUID HOB.
+ * Save the key pair to the WorkArea.
  *
  * @param  EcKey          A pointer to the EC Key pair data.
  *
@@ -275,7 +250,7 @@ GetCertEcP384KeyPairInfo (
 */
 STATIC
 EFI_STATUS
-GetCertKeyPairAndSaveToHob (
+GetCertKeyPairAndSaveToWorkArea (
   IN EC_KEY  *EcKey
   )
 {
@@ -285,8 +260,6 @@ GetCertKeyPairAndSaveToHob (
   UINT8       *PriKey;
   UINT32      PriKeySize;
   BOOLEAN     IsPubKey;
-
-  EFI_PEI_HOB_POINTERS  GuidHob;
 
   if (EcKey == NULL) {
     return EFI_INVALID_PARAMETER;
@@ -337,16 +310,9 @@ GetCertKeyPairAndSaveToHob (
     goto ClearKeyBuffer;
   }
 
-  GuidHob.Guid = GetFirstGuidHob (&gEdkiiVTpmTdX509CertKeyInfoHobGuid);
-  if (GuidHob.Guid != NULL) {
-    DEBUG ((DEBUG_ERROR, "%a: The Guid HOB should be NULL\n", __FUNCTION__));
-    Status = EFI_ABORTED;
-    goto ClearKeyBuffer;
-  }
-
-  // save the key pair to HOB
-  if (EFI_ERROR (SaveCertEcP384KeyPairToHOB (PubKey, PubKeySize, PriKey, PriKeySize))) {
-    DEBUG ((DEBUG_ERROR, "%a: SaveCertEcP384KeyPairToHOB failed \n", __FUNCTION__));
+  // Save the key pair to WorkArea
+  if (EFI_ERROR (SaveCertEcP384KeyPair (PubKey, PubKeySize, PriKey, PriKeySize))) {
+    DEBUG ((DEBUG_ERROR, "%a: SaveCertEcP384KeyPair failed \n", __FUNCTION__));
     Status = EFI_ABORTED;
     goto ClearKeyBuffer;
   }
@@ -778,9 +744,9 @@ GenerateX509CertificateForVTpmTd (
   EVP_PKEY_assign_EC_KEY (KeyPair, EcKey);
 
   // Get the public key and private key and save the keys to HOB
-  Status = GetCertKeyPairAndSaveToHob (EcKey);
+  Status = GetCertKeyPairAndSaveToWorkArea (EcKey);
   if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_ERROR, "GetCertKeyPairAndSaveToHob failed with %r\n", Status));
+    DEBUG ((DEBUG_ERROR, "GetCertKeyPairAndSaveToWorkArea failed with %r\n", Status));
     goto ClearBuffer;
   }
 
@@ -1038,21 +1004,18 @@ ClearCertData:
 }
 
 VOID
-ClearKeyPairInGuidHob (
+ClearKeyPair (
   VOID
   )
 {
-  VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO  *KeyInfo;
+  OVMF_WORK_AREA  *WorkArea;
 
-  KeyInfo = NULL;
-
-  KeyInfo = GetCertEcP384KeyPairInfo ();
-  if (KeyInfo == NULL) {
-    DEBUG ((DEBUG_ERROR, "%a: GetCertEcP384KeyPairInfo failed\n", __FUNCTION__));
+  WorkArea = (OVMF_WORK_AREA *)FixedPcdGet32 (PcdOvmfWorkAreaBase);
+  if (WorkArea == NULL) {
+    DEBUG((DEBUG_ERROR, "%a: WorkArea should not be NULL\n", __FUNCTION__));
     return;
   }
 
-  ZeroMem (KeyInfo, sizeof (VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO));
-
-  DEBUG ((DEBUG_INFO, "Clear the Key Pair after StartSession\n"));
+  ZeroMem (WorkArea->TdxWorkArea.SecTdxWorkArea.SpdmPublicKey, sizeof(WorkArea->TdxWorkArea.SecTdxWorkArea.SpdmPublicKey));
+  ZeroMem (WorkArea->TdxWorkArea.SecTdxWorkArea.SpdmPrivateKey, sizeof(WorkArea->TdxWorkArea.SecTdxWorkArea.SpdmPrivateKey));
 }

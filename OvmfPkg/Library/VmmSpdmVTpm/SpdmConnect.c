@@ -1060,7 +1060,7 @@ DoStartSession (
                              MeasurementHash
                              );
   //After SpdmStartSession, tdvf should clear the key pair info.
-  ClearKeyPairInGuidHob();
+  ClearKeyPair();
 
   return Status;
 }
