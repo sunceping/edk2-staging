@@ -40,7 +40,7 @@ InitialVtpmTdCertChain (
   );
 
 VOID
-ClearKeyPairInGuidHob (
+ClearKeyPair (
   VOID
   );
 
