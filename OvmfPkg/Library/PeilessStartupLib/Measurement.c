@@ -203,7 +203,7 @@ ExtendToVTpm (
 */
 STATIC
 EFI_STATUS
-DoMeasurementForVTpm (
+DoMeasurement (
   VOID
   )
 {
@@ -265,7 +265,6 @@ PeilessStartupDoMeasurement (
   VOID
   )
 {
-  // EFI_STATUS Status;
   BOOLEAN  VTpmEnabled;
   BOOLEAN  SharedBufferInitialized;
   UINT32   TpmActivePcrBanks;
@@ -305,10 +304,14 @@ PeilessStartupDoMeasurement (
     DEBUG ((DEBUG_INFO, "Set TdxMeasurement In Workarea failed.\n"));
   }
 
-  DoMeasurement ();
+  if (EFI_ERROR( DoMeasurement ())) {
+    DEBUG ((DEBUG_INFO, "Do Measurement failed.\n"));
+  }
 
   if (SharedBufferInitialized) {
-    TdxHelperDropSharedBuffer ();
+    if (EFI_ERROR(TdxHelperDropSharedBuffer ())) {
+      DEBUG ((DEBUG_INFO, "TdxHelperDropSharedBuffer failed\n"));
+    }
   }
 
   return EFI_SUCCESS;
