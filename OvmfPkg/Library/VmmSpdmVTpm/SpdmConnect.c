@@ -493,10 +493,8 @@ VmmSpdmVTpmInitSpdmContext (
   EFI_STATUS Status;
   UINT8*     CertChain;
   UINTN      CertChainSize;
-  BOOLEAN    CertChainSuccess;
   UINTN      Pages;
 
-  CertChainSuccess = TRUE;
   CertChain        = NULL;
   CertChainSize    = 0;
   Status           = EFI_SUCCESS;
@@ -692,8 +690,7 @@ VmmSpdmVTpmInitSpdmContext (
   
   if (EFI_ERROR(Status)) {
     DEBUG ((DEBUG_ERROR, "InitialVtpmTdCertChain failed with %r\n", Status));
-    CertChainSuccess =  FALSE;
-    goto ClearCertChain;
+    return EFI_ABORTED;
   }
 
   ZeroMem (&Parameter, sizeof (Parameter));
@@ -708,15 +705,6 @@ VmmSpdmVTpmInitSpdmContext (
                             );
   if (LIBSPDM_STATUS_IS_ERROR (SpdmStatus)) {
     DEBUG ((DEBUG_ERROR, "SpdmSetData with %x failed - %lx\n", SpdmStatus, LIBSPDM_DATA_LOCAL_PUBLIC_CERT_CHAIN));
-    CertChainSuccess =  FALSE;
-  }
-
-ClearCertChain:
-  if (CertChain) {
-    FreePages(CertChain,Pages);
-  }
-
-  if (CertChainSuccess == FALSE){
     return EFI_ABORTED;
   }
 
