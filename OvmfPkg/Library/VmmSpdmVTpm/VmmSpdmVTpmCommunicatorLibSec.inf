@@ -46,6 +46,7 @@
   gTpm2StartupLocalityHobGuid
   gEdkiiHCRTMComponentEventHobGuid
   gEdkiiVTpmTdTdReportEventHobGuid
+  gEdkiiVTpmBasedMeasurementHobGuid
 
 [LibraryClasses]
   BaseLib
