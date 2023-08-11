@@ -199,7 +199,14 @@ VmmSpdmVTpmIsSupported (
   VOID
   )
 {
-  return TdQueryServiceForVtpm ();
+  EFI_STATUS        Status;
+
+  Status = TdQueryServiceForVtpm ();
+  if (Status == EFI_SUCCESS) {
+    BuildGuidHob(&gEdkiiVTpmBasedMeasurementHobGuid, 0);
+  }
+
+  return Status;
 }
 
 VTPM_SECURE_SESSION_INFO_TABLE *
