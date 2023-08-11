@@ -325,57 +325,57 @@ GetSpdmSecuredSessionInfo (
 }
 
 
-EFI_STATUS
-EFIAPI
-VtpmDetect(
- IN  EDKII_VTPM_BASED_MEASUREMENT_PROTOCOL  *This
- )
-{
-  OVMF_WORK_AREA   *WorkArea;
+// EFI_STATUS
+// EFIAPI
+// VtpmDetect(
+//  IN  EDKII_VTPM_BASED_MEASUREMENT_PROTOCOL  *This
+//  )
+// {
+//   OVMF_WORK_AREA   *WorkArea;
 
-  WorkArea = (OVMF_WORK_AREA *)FixedPcdGet32 (PcdOvmfWorkAreaBase);
-  if (WorkArea == NULL) {
-    DEBUG((DEBUG_ERROR, "WorkArea should never be NULL\n"));
-    CpuDeadLoop();
-  }
+//   WorkArea = (OVMF_WORK_AREA *)FixedPcdGet32 (PcdOvmfWorkAreaBase);
+//   if (WorkArea == NULL) {
+//     DEBUG((DEBUG_ERROR, "WorkArea should never be NULL\n"));
+//     CpuDeadLoop();
+//   }
 
-  if (WorkArea->TdxWorkArea.SecTdxWorkArea.MeasurementType != TDX_MEASUREMENT_TYPE_VTPM)
-  {
-    return EFI_ABORTED;
-  }
+//   if (WorkArea->TdxWorkArea.SecTdxWorkArea.MeasurementType != TDX_MEASUREMENT_TYPE_VTPM)
+//   {
+//     return EFI_ABORTED;
+//   }
 
-  return EFI_SUCCESS;
-}
+//   return EFI_SUCCESS;
+// }
 
-EDKII_VTPM_BASED_MEASUREMENT_PROTOCOL mVtpmBasedMeasurementProtocol = {
- VtpmDetect
-};
+// EDKII_VTPM_BASED_MEASUREMENT_PROTOCOL mVtpmBasedMeasurementProtocol = {
+//  VtpmDetect
+// };
 
-STATIC
-VOID
-InstallVtpmBasedMeasurement (
-  VOID
-  )
-{
-  EFI_STATUS  Status;
-  EFI_HANDLE  Handle;
+// STATIC
+// VOID
+// InstallVtpmBasedMeasurement (
+//   VOID
+//   )
+// {
+//   EFI_STATUS  Status;
+//   EFI_HANDLE  Handle;
 
-  Handle = NULL;
-  Status = gBS->InstallMultipleProtocolInterfaces (
-                  &Handle,
-                  &gEdkiiVtpmBasedMeasurementProtocolGuid,
-                  &mVtpmBasedMeasurementProtocol,
-                  NULL
-                  );
-  if (EFI_ERROR(Status)){
-    DEBUG ((DEBUG_ERROR, "InstallMultipleProtocolInterfaces is failed with %r\n", Status));
-    ASSERT(FALSE);
-    return;
-  }
+//   Handle = NULL;
+//   Status = gBS->InstallMultipleProtocolInterfaces (
+//                   &Handle,
+//                   &gEdkiiVtpmBasedMeasurementProtocolGuid,
+//                   &mVtpmBasedMeasurementProtocol,
+//                   NULL
+//                   );
+//   if (EFI_ERROR(Status)){
+//     DEBUG ((DEBUG_ERROR, "InstallMultipleProtocolInterfaces is failed with %r\n", Status));
+//     ASSERT(FALSE);
+//     return;
+//   }
 
-  DEBUG ((DEBUG_INFO, "InstallVtpmBasedMeasurementProtocol is %r\n", Status));
+//   DEBUG ((DEBUG_INFO, "InstallVtpmBasedMeasurementProtocol is %r\n", Status));
 
-}
+// }
 
 STATIC
 EFI_STATUS
@@ -393,7 +393,7 @@ PrepareForVtpm (
 
   DEBUG ((DEBUG_INFO, ">>%a\n", __FUNCTION__));
 
-  InstallVtpmBasedMeasurement();
+  // InstallVtpmBasedMeasurement();
 
   // Check if SecuredSpdmSession is established
   InfoTable = GetSpdmSecuredSessionInfo ();
