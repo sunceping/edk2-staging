@@ -2432,22 +2432,29 @@ DriverEntry (
   mImageHandle = ImageHandle;
 
 #ifdef VTPM_FEATURE_ENABLED
-  EDKII_VTPM_BASED_MEASUREMENT_PROTOCOL *VtpmBasedMeasurementProtocol;
+  // EDKII_VTPM_BASED_MEASUREMENT_PROTOCOL *VtpmBasedMeasurementProtocol;
 
-  Status = gBS->LocateProtocol(&gEdkiiVtpmBasedMeasurementProtocolGuid, NULL, (VOID **)&VtpmBasedMeasurementProtocol);
-  if (EFI_ERROR(Status))
-  {
-      DEBUG((DEBUG_ERROR, "Locate VtpmBasedMeasurementProtocol failed with %r\n", Status));
-      ASSERT(FALSE);
-      return Status;
-  }
+  // Status = gBS->LocateProtocol(&gEdkiiVtpmBasedMeasurementProtocolGuid, NULL, (VOID **)&VtpmBasedMeasurementProtocol);
+  // if (EFI_ERROR(Status))
+  // {
+  //     DEBUG((DEBUG_ERROR, "Locate VtpmBasedMeasurementProtocol failed with %r\n", Status));
+  //     ASSERT(FALSE);
+  //     return Status;
+  // }
 
-  Status = VtpmBasedMeasurementProtocol->VtpmDetect(VtpmBasedMeasurementProtocol);
-  if (Status == EFI_SUCCESS)
+  // Status = VtpmBasedMeasurementProtocol->VtpmDetect(VtpmBasedMeasurementProtocol);
+  // if (Status == EFI_SUCCESS)
+  // {
+  //   DEBUG ((DEBUG_INFO, "It is vTPM based measurement.\n"));
+  //   return EFI_UNSUPPORTED;
+  // }
+
+  if (GetFirstGuidHob(&gEdkiiVTpmBasedMeasurementHobGuid) != NULL)
   {
     DEBUG ((DEBUG_INFO, "It is vTPM based measurement.\n"));
     return EFI_UNSUPPORTED;
   }
+
 #endif
 
   //
