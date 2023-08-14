@@ -184,6 +184,11 @@ VtpmAllocateSharedBuffer(
   IN UINT32      Pages
 );
 
+EFI_STATUS
+VtpmClearSharedBuffer (
+  VOID
+  );
+
 VTPM_SECURE_SESSION_INFO_TABLE *
 GetSpdmSecuredSessionInfo (
   VOID
