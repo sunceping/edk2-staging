@@ -12,8 +12,6 @@
 
 #include <ConfidentialComputingGuestAttr.h>
 #include <IndustryStandard/Tpm20.h>
-#include <IndustryStandard/VTpmTd.h>
-#include <IndustryStandard/Tdx.h>
 
 //
 // Confidential computing work area header definition. Any change
