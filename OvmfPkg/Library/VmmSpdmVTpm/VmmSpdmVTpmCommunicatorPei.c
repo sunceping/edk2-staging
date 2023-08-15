@@ -229,7 +229,8 @@ SetTdxMeasurementTypeInWorkare (
   OVMF_WORK_AREA  *WorkArea;
   WorkArea = (OVMF_WORK_AREA *)FixedPcdGet32 (PcdOvmfWorkAreaBase);
   if (WorkArea == NULL) {
-    CpuDeadLoop(); 
+    DEBUG((DEBUG_ERROR, "%a: WorkArea should not be NULL\n", __FUNCTION__));
+    return ;
   }
 
   WorkArea->TdxWorkArea.SecTdxWorkArea.MeasurementType = VTpmEnabled ? TDX_MEASUREMENT_TYPE_VTPM : TDX_MEASUREMENT_TYPE_CC;
