@@ -68,14 +68,14 @@ GetCertKey (
 
   GuidHob.Guid = GetFirstGuidHob (&gEdkiiVTpmTdX509CertKeyInfoHobGuid);
   if (GuidHob.Guid == NULL) {
-    DEBUG ((DEBUG_ERROR, "%a: The Guid HOB is not found \n", __FUNCTION__));
+    DEBUG ((DEBUG_ERROR, "%a: The Guid HOB is not found \n", __func__));
     return NULL;
   }
 
   HobLength = sizeof (EFI_HOB_GUID_TYPE) + sizeof (VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO);
 
   if (GuidHob.Guid->Header.HobLength != HobLength) {
-    DEBUG ((DEBUG_ERROR, "%a: The GuidHob.Guid->Header.HobLength is not equal HobLength, %d vs %d \n", __FUNCTION__, GuidHob.Guid->Header.HobLength, HobLength));
+    DEBUG ((DEBUG_ERROR, "%a: The GuidHob.Guid->Header.HobLength is not equal HobLength, %d vs %d \n", __func__, GuidHob.Guid->Header.HobLength, HobLength));
     return NULL;
   }
 

@@ -125,14 +125,14 @@ VmmSpdmTunnelDxeDriverEntry (
   EFI_STATUS     Status;
   EFI_HANDLE     Handle;
 
-  DEBUG ((DEBUG_INFO, "%a\n", __FUNCTION__));
+  DEBUG ((DEBUG_INFO, "%a\n", __func__));
 
   Status = EFI_SUCCESS;
-  // if (CompareGuid (PcdGetPtr (PcdTpmInstanceGuid), &gEfiTpmDeviceInstanceNoneGuid) ||
-  //     CompareGuid (PcdGetPtr (PcdTpmInstanceGuid), &gEfiTpmDeviceInstanceTpm12Guid))
-  // {
-  //   Status = EFI_UNSUPPORTED;
-  // }
+  if (CompareGuid (PcdGetPtr (PcdTpmInstanceGuid), &gEfiTpmDeviceInstanceNoneGuid) ||
+      CompareGuid (PcdGetPtr (PcdTpmInstanceGuid), &gEfiTpmDeviceInstanceTpm12Guid))
+  {
+    Status = EFI_UNSUPPORTED;
+  }
   
   if (!EFI_ERROR (Status) && TdIsEnabled ()) {
 #ifdef VTPM_FEATURE_ENABLED

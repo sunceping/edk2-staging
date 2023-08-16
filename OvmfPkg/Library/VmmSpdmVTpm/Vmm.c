@@ -272,7 +272,7 @@ VTpmContextWrite (
   // Call tdvmcall service to send cmd.
   TdxSharedBit = TdSharedPageMask ();
   if (TdxSharedBit == 0) {
-    DEBUG ((DEBUG_ERROR, "%a: Failed with TdxSharedBit %llx\n", __FUNCTION__, TdxSharedBit));
+    DEBUG ((DEBUG_ERROR, "%a: Failed with TdxSharedBit %llx\n", __func__, TdxSharedBit));
     return EFI_ABORTED;
   }
 
@@ -286,21 +286,21 @@ VTpmContextWrite (
                       );
 
   if (RetCode != 0) {
-    DEBUG ((DEBUG_ERROR, "%a: Failed with RetCode %llx\n", __FUNCTION__, RetCode));
+    DEBUG ((DEBUG_ERROR, "%a: Failed with RetCode %llx\n", __func__, RetCode));
     return EFI_ABORTED;
   }
 
   // Check the status in TDVMCALL_SERVICE
   TdvmcallRspHeader = (TDVMCALL_SERVICE_RESPONSE_HEADER *)RspBuffer;
   if (TdvmcallRspHeader->Status != 0) {
-    DEBUG ((DEBUG_ERROR, "%a: Failed with TdvmcallRsp status: %x\n", __FUNCTION__, TdvmcallRspHeader->Status));
+    DEBUG ((DEBUG_ERROR, "%a: Failed with TdvmcallRsp status: %x\n", __func__, TdvmcallRspHeader->Status));
     return EFI_ABORTED;
   }
 
   // Check the status in SEND_MESSAGE_RESPONSE
   SendMessageRspHeader = (SEND_MESSAGE_RESPONSE_HEADER *)(RspBuffer + sizeof (TDVMCALL_SERVICE_RESPONSE_HEADER));
   if (SendMessageRspHeader->Status != 0) {
-    DEBUG ((DEBUG_ERROR, "%a: Failed with SendMessageRsp status: %x\n", __FUNCTION__, SendMessageRspHeader->Status));
+    DEBUG ((DEBUG_ERROR, "%a: Failed with SendMessageRsp status: %x\n", __func__, SendMessageRspHeader->Status));
     return EFI_ABORTED;
   }
 
@@ -371,7 +371,7 @@ VTpmContextRead (
   // step c. call tdvmcall service to send command.
   TdxSharedBit = TdSharedPageMask ();
   if (TdxSharedBit == 0) {
-    DEBUG ((DEBUG_ERROR, "%a: Failed with TdxSharedBit %llx\n", __FUNCTION__, TdxSharedBit));
+    DEBUG ((DEBUG_ERROR, "%a: Failed with TdxSharedBit %llx\n", __func__, TdxSharedBit));
     return EFI_ABORTED;
   }
 
@@ -385,21 +385,21 @@ VTpmContextRead (
                       );
 
   if (RetCode != 0) {
-    DEBUG ((DEBUG_ERROR, "%a: Failed with RetCode %llx\n", __FUNCTION__, RetCode));
+    DEBUG ((DEBUG_ERROR, "%a: Failed with RetCode %llx\n", __func__, RetCode));
     return EFI_ABORTED;
   }
 
   // Check the status in TDVMCALL_SERVICE
   TdvmcallRspHeader = (TDVMCALL_SERVICE_RESPONSE_HEADER *)RspBuffer;
   if (TdvmcallRspHeader->Status != 0) {
-    DEBUG ((DEBUG_ERROR, "%a: Failed with TdvmcallRsp status: %x\n", __FUNCTION__, TdvmcallRspHeader->Status));
+    DEBUG ((DEBUG_ERROR, "%a: Failed with TdvmcallRsp status: %x\n", __func__, TdvmcallRspHeader->Status));
     return EFI_ABORTED;
   }
 
   // Check the status in RECEIVE_MESSAGE_RESPONSE
   ReceiveMessageRspHeader = (RECEIVE_MESSAGE_RESPONSE_HEADER *)(RspBuffer + sizeof (TDVMCALL_SERVICE_RESPONSE_HEADER));
   if (ReceiveMessageRspHeader->Status != 0) {
-    DEBUG ((DEBUG_ERROR, "%a: Failed with SendMessageRsp status: %x\n", __FUNCTION__, ReceiveMessageRspHeader->Status));
+    DEBUG ((DEBUG_ERROR, "%a: Failed with SendMessageRsp status: %x\n", __func__, ReceiveMessageRspHeader->Status));
     return EFI_ABORTED;
   }
 
@@ -407,7 +407,7 @@ VTpmContextRead (
   HeaderLen = sizeof (TDVMCALL_SERVICE_RESPONSE_HEADER) + sizeof (RECEIVE_MESSAGE_RESPONSE_HEADER);
   DataLen   = TdvmcallRspHeader->Length - HeaderLen;
   if (DataLen > *ResponseSize) {
-    DEBUG ((DEBUG_ERROR, "%a: Failed with DataLen too small\n", __FUNCTION__));
+    DEBUG ((DEBUG_ERROR, "%a: Failed with DataLen too small\n", __func__));
     *ResponseSize = DataLen;
     return EFI_BUFFER_TOO_SMALL;
   }
@@ -483,11 +483,11 @@ TdQueryServiceForVtpm (
 
   TdxSharedBit = TdSharedPageMask ();
   if (TdxSharedBit == 0) {
-    DEBUG ((DEBUG_ERROR, "%a: Failed with TdxSharedBit %llx\n", __FUNCTION__, TdxSharedBit));
+    DEBUG ((DEBUG_ERROR, "%a: Failed with TdxSharedBit %llx\n", __func__, TdxSharedBit));
     return EFI_ABORTED;
   }
 
-  DEBUG ((DEBUG_INFO, "%a: Query Service Guid: %g\n", __FUNCTION__, mTdVmCallServiceQueryCommandStruct.ServiceGuid));
+  DEBUG ((DEBUG_INFO, "%a: Query Service Guid: %g\n", __func__, mTdVmCallServiceQueryCommandStruct.ServiceGuid));
 
   TdVmCallRetCode = TdVmCall (
                               TDVMCALL_SERVICE,
@@ -503,7 +503,7 @@ TdQueryServiceForVtpm (
            (
             DEBUG_ERROR,
             "%a: TdvmCall failed with Status Code %llx\n",
-            __FUNCTION__,
+            __func__,
             TdVmCallRetCode
            )
            );
@@ -517,7 +517,7 @@ TdQueryServiceForVtpm (
            (
             DEBUG_ERROR,
             "%a: Failed with TdVmCallRsp status: %x\n",
-            __FUNCTION__,
+            __func__,
             TdVmCallRspHeader->Status
            )
            );
@@ -531,7 +531,7 @@ TdQueryServiceForVtpm (
            (
             DEBUG_ERROR,
             "%a: Failed with QueryRspStruct Command: %x or Version: %x\n",
-            __FUNCTION__,
+            __func__,
             QueryRspStruct->Command,
             QueryRspStruct->Version
            )
@@ -544,7 +544,7 @@ TdQueryServiceForVtpm (
            (
             DEBUG_ERROR,
             "%a: QueryResponse ServiceGuid is not equal to the QueryCommand's ServiceGuid %g vs %g\n",
-            __FUNCTION__,
+            __func__,
             mTdVmCallServiceQueryCommandStruct.ServiceGuid,
             QueryRspStruct->ServiceGuid
            )
@@ -557,7 +557,7 @@ TdQueryServiceForVtpm (
            (
             DEBUG_ERROR,
             "%a: Failed with QueryRspStruct status: %x\n",
-            __FUNCTION__,
+            __func__,
             QueryRspStruct->Status)
            );
     return EFI_UNSUPPORTED;

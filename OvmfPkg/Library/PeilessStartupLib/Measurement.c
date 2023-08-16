@@ -124,13 +124,13 @@ HashExtendTdHobToVtpm (
   TdHobSize = (UINTN)((UINT8 *)Hob.Raw - (UINT8 *)TdHob);
   Status    = InitDigestList (Tpm2ActivePcrBanks, &DigestList, TdHob, TdHobSize);
   if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_INFO, "%a: InitDigestList failed with %r\n", __FUNCTION__, Status));
+    DEBUG ((DEBUG_INFO, "%a: InitDigestList failed with %r\n", __func__, Status));
     return Status;
   }
 
   Status = Tpm2PcrExtend (PcrIndex, &DigestList);
   if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_INFO, "%a: Tpm2PcrExtend failed with %r\n", __FUNCTION__, Status));
+    DEBUG ((DEBUG_INFO, "%a: Tpm2PcrExtend failed with %r\n", __func__, Status));
   }
 
   return Status;
@@ -153,13 +153,13 @@ HashExtendCfvImageToVtpm (
 
   Status = InitDigestList (Tpm2ActivePcrBanks, &DigestList, CfvImage, CfvSize);
   if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_INFO, "%a: InitDigestList failed with %r\n", __FUNCTION__, Status));
+    DEBUG ((DEBUG_INFO, "%a: InitDigestList failed with %r\n", __func__, Status));
     return Status;
   }
 
   Status = Tpm2PcrExtend (PcrIndex, &DigestList);
   if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_INFO, "%a: Tpm2PcrExtend failed with %r\n", __FUNCTION__, Status));
+    DEBUG ((DEBUG_INFO, "%a: Tpm2PcrExtend failed with %r\n", __func__, Status));
   }
 
   return Status;

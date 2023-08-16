@@ -194,7 +194,7 @@ ExportSecureSpdmSessionInfos (
                                  );
 
   if (GuidHobRawData == NULL) {
-    DEBUG ((DEBUG_ERROR, "%a : BuildGuidHob failed \n", __FUNCTION__));
+    DEBUG ((DEBUG_ERROR, "%a : BuildGuidHob failed \n", __func__));
     return EFI_OUT_OF_RESOURCES;
   }
 
@@ -229,7 +229,7 @@ SetTdxMeasurementTypeInWorkare (
   OVMF_WORK_AREA  *WorkArea;
   WorkArea = (OVMF_WORK_AREA *)FixedPcdGet32 (PcdOvmfWorkAreaBase);
   if (WorkArea == NULL) {
-    DEBUG((DEBUG_ERROR, "%a: WorkArea should not be NULL\n", __FUNCTION__));
+    DEBUG((DEBUG_ERROR, "%a: WorkArea should not be NULL\n", __func__));
     return ;
   }
 
@@ -442,14 +442,14 @@ GetSpdmSecuredSessionInfo (
 
   GuidHob.Guid = GetFirstGuidHob (&gEdkiiVTpmSecureSpdmSessionInfoHobGuid);
   if (GuidHob.Guid == NULL) {
-    DEBUG ((DEBUG_ERROR, "%a: The Guid HOB is not found \n", __FUNCTION__));
+    DEBUG ((DEBUG_ERROR, "%a: The Guid HOB is not found \n", __func__));
     return NULL;
   }
 
   HobLength = sizeof (EFI_HOB_GUID_TYPE) + VTPM_SECURE_SESSION_INFO_TABLE_SIZE;
 
   if (GuidHob.Guid->Header.HobLength != HobLength) {
-    DEBUG ((DEBUG_ERROR, "%a: The GuidHob.Guid->Header.HobLength is not equal HobLength, %x vs %x \n", __FUNCTION__, GuidHob.Guid->Header.HobLength, HobLength));
+    DEBUG ((DEBUG_ERROR, "%a: The GuidHob.Guid->Header.HobLength is not equal HobLength, %x vs %x \n", __func__, GuidHob.Guid->Header.HobLength, HobLength));
     return NULL;
   }
 
@@ -504,7 +504,7 @@ VtpmAllocateSharedBuffer (
 
 #ifdef TDX_PEI_LESS_BOOT
   if (EFI_PAGES_TO_SIZE (Pages)  > SIZE_2MB) {
-    DEBUG((DEBUG_ERROR, "%a: Sharead Buffer size (%x) should be less than %x in TDX_PEI_LESS_BOOT\n", __FUNCTION__, EFI_PAGES_TO_SIZE (Pages), SIZE_2MB));
+    DEBUG((DEBUG_ERROR, "%a: Sharead Buffer size (%x) should be less than %x in TDX_PEI_LESS_BOOT\n", __func__, EFI_PAGES_TO_SIZE (Pages), SIZE_2MB));
     return EFI_INVALID_PARAMETER;
   }
 
@@ -523,7 +523,7 @@ VtpmAllocateSharedBuffer (
   VTPM_SHARED_BUFFER_INFO_STRUCT  *VtpmSharedBufferInfo;
 
   GuidHob.Guid = GetFirstGuidHob (&gEdkiiVTpmSharedBufferInfoHobGuid);
-  DEBUG ((DEBUG_INFO, "%a: GuidHob.Guid %p \n", __FUNCTION__ , GuidHob.Guid));
+  DEBUG ((DEBUG_INFO, "%a: GuidHob.Guid %p \n", __func__ , GuidHob.Guid));
   if (GuidHob.Guid == NULL) {
     Buffer = (UINT8 *)AllocatePages (Pages);
     if (Buffer == NULL) {
@@ -547,7 +547,7 @@ VtpmAllocateSharedBuffer (
                                    );
 
     if (GuidHobRawData == NULL) {
-      DEBUG ((DEBUG_ERROR, "%a : BuildGuidHob failed \n", __FUNCTION__));
+      DEBUG ((DEBUG_ERROR, "%a : BuildGuidHob failed \n", __func__));
       return EFI_OUT_OF_RESOURCES;
     }
 
@@ -561,7 +561,7 @@ VtpmAllocateSharedBuffer (
 
   HobLength = sizeof (EFI_HOB_GUID_TYPE) + sizeof (VTPM_SHARED_BUFFER_INFO_STRUCT);
   if (GuidHob.Guid->Header.HobLength != HobLength) {
-    DEBUG ((DEBUG_ERROR, "%a: The GuidHob.Guid->Header.HobLength is not equal HobLength, %x vs %x \n", __FUNCTION__, GuidHob.Guid->Header.HobLength, HobLength));
+    DEBUG ((DEBUG_ERROR, "%a: The GuidHob.Guid->Header.HobLength is not equal HobLength, %x vs %x \n", __func__, GuidHob.Guid->Header.HobLength, HobLength));
     return EFI_INVALID_PARAMETER;
   }
 
@@ -590,14 +590,14 @@ VmmSpdmVTpmClearSharedBit (
   VtpmSharedBufferInfo= NULL;
 
   GuidHob.Guid = GetFirstGuidHob (&gEdkiiVTpmSharedBufferInfoHobGuid);
-  DEBUG ((DEBUG_INFO, "%a: GuidHob.Guid %p \n", __FUNCTION__ , GuidHob.Guid));
+  DEBUG ((DEBUG_INFO, "%a: GuidHob.Guid %p \n", __func__ , GuidHob.Guid));
   if (GuidHob.Guid == NULL) {
     return EFI_SUCCESS;
   }
 
   HobLength = sizeof (EFI_HOB_GUID_TYPE) + sizeof (VTPM_SHARED_BUFFER_INFO_STRUCT);
   if (GuidHob.Guid->Header.HobLength != HobLength) {
-    DEBUG ((DEBUG_ERROR, "%a: The GuidHob.Guid->Header.HobLength is not equal HobLength, %x vs %x \n", __FUNCTION__, GuidHob.Guid->Header.HobLength, HobLength));
+    DEBUG ((DEBUG_ERROR, "%a: The GuidHob.Guid->Header.HobLength is not equal HobLength, %x vs %x \n", __func__, GuidHob.Guid->Header.HobLength, HobLength));
     return EFI_OUT_OF_RESOURCES;
   }
 
@@ -607,7 +607,7 @@ VmmSpdmVTpmClearSharedBit (
   Pages  = EFI_SIZE_TO_PAGES(VtpmSharedBufferInfo->BufferSize);
   Status = MemEncryptTdxClearPageSharedBit (0, (PHYSICAL_ADDRESS)Buffer, Pages);
   if (EFI_ERROR(Status)) {
-    DEBUG ((DEBUG_INFO, "%a: MemEncryptTdxClearPageSharedBit failed with %r \n", __FUNCTION__ , Status));
+    DEBUG ((DEBUG_INFO, "%a: MemEncryptTdxClearPageSharedBit failed with %r \n", __func__ , Status));
   }
 
   return Status;

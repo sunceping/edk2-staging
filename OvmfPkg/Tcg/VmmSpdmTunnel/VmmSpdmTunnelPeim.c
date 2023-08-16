@@ -155,7 +155,7 @@ InstallClearSharedBitCallback (
     DEBUG ((
       DEBUG_ERROR,
       "%a: failed to set up VTPM Clear Shared BIT callback: %r\n",
-      __FUNCTION__,
+      __func__,
       Status
       ));
   }
@@ -179,7 +179,7 @@ VmmSpdmTunnelPeimEntryPoint (
 {
   EFI_STATUS     Status;
 
-  DEBUG ((DEBUG_INFO, "%a\n", __FUNCTION__));
+  DEBUG ((DEBUG_INFO, "%a\n", __func__));
 
   Status = EFI_UNSUPPORTED;
   if (TdIsEnabled ()) {

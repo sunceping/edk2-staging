@@ -105,7 +105,7 @@ SetOrClearSharedBit (
 
   TdStatus = TdVmCall (TDVMCALL_MAPGPA, PhysicalAddress, Length, 0, 0, NULL);
   if (TdStatus != 0) {
-    DEBUG ((DEBUG_ERROR, "%a: TdVmcall(MAPGPA) failed with %llx\n", __FUNCTION__, TdStatus));
+    DEBUG ((DEBUG_ERROR, "%a: TdVmcall(MAPGPA) failed with %llx\n", __func__, TdStatus));
     ASSERT (FALSE);
     return EFI_DEVICE_ERROR;
   }
@@ -116,7 +116,7 @@ SetOrClearSharedBit (
   if (Mode == ClearSharedBit) {
     Status = TdAcceptPages (PhysicalAddress, EFI_SIZE_TO_PAGES (Length), 0x1000);
     if (EFI_ERROR (Status)) {
-      DEBUG ((DEBUG_ERROR, "%a: Failed to AcceptMemory with %r\n", __FUNCTION__, Status));
+      DEBUG ((DEBUG_ERROR, "%a: Failed to AcceptMemory with %r\n", __func__, Status));
       ASSERT (FALSE);
       return Status;
     }
@@ -126,7 +126,7 @@ SetOrClearSharedBit (
     DEBUG_INFO,
     "%a:%a: pte=0x%Lx AddressEncMask=0x%Lx Mode=0x%x MapGPA Status=0x%x\n",
     gEfiCallerBaseName,
-    __FUNCTION__,
+    __func__,
     *PageTablePointer,
     AddressEncMask,
     Mode,
@@ -232,7 +232,7 @@ SetMemorySharedOrPrivate (
     DEBUG_INFO,
     "%a:%a: Cr3Base=0x%Lx Physical=0x%Lx Length=0x%Lx Mode=%a\n",
     gEfiCallerBaseName,
-    __FUNCTION__,
+    __func__,
     Cr3BaseAddress,
     PhysicalAddress,
     (UINT64)Length,
@@ -289,7 +289,7 @@ SetMemorySharedOrPrivate (
         DEBUG_ERROR,
         "%a:%a: bad PML4 for Physical=0x%Lx\n",
         gEfiCallerBaseName,
-        __FUNCTION__,
+        __func__,
         PhysicalAddress
         ));
       Status = RETURN_NO_MAPPING;
@@ -306,7 +306,7 @@ SetMemorySharedOrPrivate (
         DEBUG_ERROR,
         "%a:%a: bad PDPE for Physical=0x%Lx\n",
         gEfiCallerBaseName,
-        __FUNCTION__,
+        __func__,
         PhysicalAddress
         ));
       Status = RETURN_NO_MAPPING;
@@ -331,7 +331,7 @@ SetMemorySharedOrPrivate (
           DEBUG_VERBOSE,
           "%a:%a: updated 1GB entry for Physical=0x%Lx\n",
           gEfiCallerBaseName,
-          __FUNCTION__,
+          __func__,
           PhysicalAddress
           ));
         PhysicalAddress += BIT30;
@@ -344,7 +344,7 @@ SetMemorySharedOrPrivate (
           DEBUG_VERBOSE,
           "%a:%a: splitting 1GB page for Physical=0x%Lx\n",
           gEfiCallerBaseName,
-          __FUNCTION__,
+          __func__,
           PhysicalAddress
           ));
         ASSERT (FALSE);
@@ -367,7 +367,7 @@ SetMemorySharedOrPrivate (
           DEBUG_ERROR,
           "%a:%a: bad PDE for Physical=0x%Lx\n",
           gEfiCallerBaseName,
-          __FUNCTION__,
+          __func__,
           PhysicalAddress
           ));
         Status = RETURN_NO_MAPPING;
@@ -400,7 +400,7 @@ SetMemorySharedOrPrivate (
             DEBUG_VERBOSE,
             "%a:%a: splitting 2MB page for Physical=0x%Lx\n",
             gEfiCallerBaseName,
-            __FUNCTION__,
+            __func__,
             PhysicalAddress
             ));
           ASSERT (FALSE);
@@ -420,7 +420,7 @@ SetMemorySharedOrPrivate (
             DEBUG_ERROR,
             "%a:%a: bad PTE for Physical=0x%Lx\n",
             gEfiCallerBaseName,
-            __FUNCTION__,
+            __func__,
             PhysicalAddress
             ));
           Status = RETURN_NO_MAPPING;

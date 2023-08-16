@@ -1026,7 +1026,7 @@ DoEndSession (
   SPDM_RETURN  Status;
 
   if (Context == NULL) {
-    DEBUG ((DEBUG_ERROR, "%a: Context is NULL\n", __FUNCTION__));
+    DEBUG ((DEBUG_ERROR, "%a: Context is NULL\n", __func__));
     return EFI_INVALID_PARAMETER;
   }
 
@@ -1051,7 +1051,7 @@ DoEndSession (
     return EFI_DEVICE_ERROR;
   }
 
-  DEBUG ((DEBUG_INFO, "%a: Session is destroyed\n", __FUNCTION__));
+  DEBUG ((DEBUG_INFO, "%a: Session is destroyed\n", __func__));
 
   return EFI_SUCCESS;
 }

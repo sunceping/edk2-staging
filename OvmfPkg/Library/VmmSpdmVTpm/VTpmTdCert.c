@@ -219,7 +219,7 @@ SaveCertEcP384KeyPairToHOB (
   //
   DataLength = sizeof (VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO);
   if ((PubKeySize + PriKeySize) > DataLength) {
-    DEBUG ((DEBUG_ERROR, "%a : The Key pair size should be equal to the DataLength \n", __FUNCTION__));
+    DEBUG ((DEBUG_ERROR, "%a : The Key pair size should be equal to the DataLength \n", __func__));
     return EFI_OUT_OF_RESOURCES;
   }
 
@@ -229,7 +229,7 @@ SaveCertEcP384KeyPairToHOB (
                                  );
 
   if (GuidHobRawData == NULL) {
-    DEBUG ((DEBUG_ERROR, "%a : BuildGuidHob failed \n", __FUNCTION__));
+    DEBUG ((DEBUG_ERROR, "%a : BuildGuidHob failed \n", __func__));
     return EFI_OUT_OF_RESOURCES;
   }
 
@@ -250,14 +250,14 @@ GetCertEcP384KeyPairInfo (
 
   GuidHob.Guid = GetFirstGuidHob (&gEdkiiVTpmTdX509CertKeyInfoHobGuid);
   if (GuidHob.Guid == NULL) {
-    DEBUG ((DEBUG_ERROR, "%a: The Guid HOB is not found \n", __FUNCTION__));
+    DEBUG ((DEBUG_ERROR, "%a: The Guid HOB is not found \n", __func__));
     return NULL;
   }
 
   HobLength = sizeof (EFI_HOB_GUID_TYPE) + sizeof (VTPMTD_CERT_ECDSA_P_384_KEY_PAIR_INFO);
 
   if (GuidHob.Guid->Header.HobLength != HobLength) {
-    DEBUG ((DEBUG_ERROR, "%a: The GuidHob.Guid->Header.HobLength is not equal HobLength, %d vs %d \n", __FUNCTION__, GuidHob.Guid->Header.HobLength, HobLength));
+    DEBUG ((DEBUG_ERROR, "%a: The GuidHob.Guid->Header.HobLength is not equal HobLength, %d vs %d \n", __func__, GuidHob.Guid->Header.HobLength, HobLength));
     return NULL;
   }
 
@@ -300,7 +300,7 @@ GetCertKeyPairAndSaveToHob (
   // Get public key size
   IsPubKey = TRUE;
   if (GetEcKeySize (EcKey, IsPubKey, &PubKeySize) == FALSE) {
-    DEBUG ((DEBUG_ERROR, "%a: GetEcKeySize for Pubkey failed \n", __FUNCTION__));
+    DEBUG ((DEBUG_ERROR, "%a: GetEcKeySize for Pubkey failed \n", __func__));
     return EFI_ABORTED;
   }
 
@@ -311,7 +311,7 @@ GetCertKeyPairAndSaveToHob (
 
   // Get public key
   if (GetEcPubKey (EcKey, PubKey, PubKeySize) == FALSE) {
-    DEBUG ((DEBUG_ERROR, "%a: GetEcPubKey failed \n", __FUNCTION__));
+    DEBUG ((DEBUG_ERROR, "%a: GetEcPubKey failed \n", __func__));
     Status = EFI_ABORTED;
     goto ClearKeyBuffer;
   }
@@ -319,7 +319,7 @@ GetCertKeyPairAndSaveToHob (
   // Get private key size
   IsPubKey = FALSE;
   if (GetEcKeySize (EcKey, IsPubKey, &PriKeySize) == FALSE) {
-    DEBUG ((DEBUG_ERROR, "%a: GetEcKeySize for Private key failed \n", __FUNCTION__));
+    DEBUG ((DEBUG_ERROR, "%a: GetEcKeySize for Private key failed \n", __func__));
     Status = EFI_ABORTED;
     goto ClearKeyBuffer;
   }
@@ -331,7 +331,7 @@ GetCertKeyPairAndSaveToHob (
   }
 
   if (GetEcPritKey (EcKey, PriKey, PriKeySize) == FALSE) {
-    DEBUG ((DEBUG_ERROR, "%a: GetEcPritKey failed \n", __FUNCTION__));
+    DEBUG ((DEBUG_ERROR, "%a: GetEcPritKey failed \n", __func__));
 
     Status = EFI_ABORTED;
     goto ClearKeyBuffer;
@@ -339,14 +339,14 @@ GetCertKeyPairAndSaveToHob (
 
   GuidHob.Guid = GetFirstGuidHob (&gEdkiiVTpmTdX509CertKeyInfoHobGuid);
   if (GuidHob.Guid != NULL) {
-    DEBUG ((DEBUG_ERROR, "%a: The Guid HOB should be NULL\n", __FUNCTION__));
+    DEBUG ((DEBUG_ERROR, "%a: The Guid HOB should be NULL\n", __func__));
     Status = EFI_ABORTED;
     goto ClearKeyBuffer;
   }
 
   // save the key pair to HOB
   if (EFI_ERROR (SaveCertEcP384KeyPairToHOB (PubKey, PubKeySize, PriKey, PriKeySize))) {
-    DEBUG ((DEBUG_ERROR, "%a: SaveCertEcP384KeyPairToHOB failed \n", __FUNCTION__));
+    DEBUG ((DEBUG_ERROR, "%a: SaveCertEcP384KeyPairToHOB failed \n", __func__));
     Status = EFI_ABORTED;
     goto ClearKeyBuffer;
   }
@@ -487,7 +487,7 @@ SaveTdReportToHob(
 
   GuidHob.Guid = GetFirstGuidHob (&gEdkiiTdReportInfoHobGuid);
   if (GuidHob.Guid != NULL) {
-    DEBUG ((DEBUG_ERROR, "%a: The Guid HOB should be NULL \n", __FUNCTION__));
+    DEBUG ((DEBUG_ERROR, "%a: The Guid HOB should be NULL \n", __func__));
     return EFI_UNSUPPORTED;
   }
 
@@ -499,7 +499,7 @@ SaveTdReportToHob(
                                  );
 
   if (GuidHobRawData == NULL) {
-    DEBUG ((DEBUG_ERROR, "%a : BuildGuidHob failed \n", __FUNCTION__));
+    DEBUG ((DEBUG_ERROR, "%a : BuildGuidHob failed \n", __func__));
     return EFI_OUT_OF_RESOURCES;
   }
 
@@ -551,7 +551,7 @@ GetTdReportForVTpmTdCert (
 
   KeyInfo = GetCertEcP384KeyPairInfo ();
   if (KeyInfo == NULL) {
-    DEBUG ((DEBUG_ERROR, "%a: GetCertEcP384KeyPairInfo failed \n", __FUNCTION__));
+    DEBUG ((DEBUG_ERROR, "%a: GetCertEcP384KeyPairInfo failed \n", __func__));
     return EFI_ABORTED;
   }
 
@@ -569,7 +569,7 @@ GetTdReportForVTpmTdCert (
                         TDREPORT_ADDITIONAL_DATA_SIZE
                         );
   if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_ERROR, "%a: TdGetReport failed with %r\n", __FUNCTION__, Status));
+    DEBUG ((DEBUG_ERROR, "%a: TdGetReport failed with %r\n", __func__, Status));
   }
 
   CopyMem(Report, TdReport, sizeof (TDREPORT_STRUCT));
@@ -1053,7 +1053,7 @@ ClearKeyPairInGuidHob (
 
   KeyInfo = GetCertEcP384KeyPairInfo ();
   if (KeyInfo == NULL) {
-    DEBUG ((DEBUG_ERROR, "%a: GetCertEcP384KeyPairInfo failed\n", __FUNCTION__));
+    DEBUG ((DEBUG_ERROR, "%a: GetCertEcP384KeyPairInfo failed\n", __func__));
     return;
   }
 

@@ -69,7 +69,7 @@ CheckRtmr3WithTdReport (
                         TDREPORT_ADDITIONAL_DATA_SIZE
                         );
   if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_ERROR, "%a: TdGetReport failed with %r\n", __FUNCTION__, Status));
+    DEBUG ((DEBUG_ERROR, "%a: TdGetReport failed with %r\n", __func__, Status));
     goto QuitCheckRTMRForVTPM;
   }
 
@@ -78,7 +78,7 @@ CheckRtmr3WithTdReport (
   Rtmr3    = TdReport->Tdinfo.Rtmrs[RTMR_INDEX_RTMR3];
   while (Index < SHA384_DIGEST_SIZE) {
     if (Rtmr3[Index] != 0) {
-      DEBUG ((DEBUG_ERROR, "%a: RTMR[3] is non-zero\n", __FUNCTION__));
+      DEBUG ((DEBUG_ERROR, "%a: RTMR[3] is non-zero\n", __func__));
       Status = EFI_ABORTED;
       goto QuitCheckRTMRForVTPM;
     }
@@ -86,7 +86,7 @@ CheckRtmr3WithTdReport (
     Index++;
   }
 
-  DEBUG ((DEBUG_INFO, "%a: RTMR[3] is zero\n", __FUNCTION__));
+  DEBUG ((DEBUG_INFO, "%a: RTMR[3] is zero\n", __func__));
   Status = EFI_SUCCESS;
 
 QuitCheckRTMRForVTPM:
@@ -110,12 +110,12 @@ HashAndExtendToRtmr(
   ZeroMem(Digest,SHA384_DIGEST_SIZE);
 
   if (DataToHash == NULL ){
-    DEBUG ((DEBUG_ERROR, "%a: DataToHash is NULL\n", __FUNCTION__));
+    DEBUG ((DEBUG_ERROR, "%a: DataToHash is NULL\n", __func__));
     return EFI_INVALID_PARAMETER;
   }
 
   if (RtmrIndex > RTMR_INDEX_RTMR3){
-    DEBUG ((DEBUG_ERROR, "%a: RtmrIndex should be 0~3\n", __FUNCTION__));
+    DEBUG ((DEBUG_ERROR, "%a: RtmrIndex should be 0~3\n", __func__));
     return EFI_INVALID_PARAMETER;
   }
 
@@ -177,14 +177,14 @@ ExtendVtpmToAllRtmrs (
         (
          DEBUG_INFO, 
          SessionSuccess ? "%a: Session Setup Successful\n" : "%a: Session Setup Failed\n", 
-         __FUNCTION__
+         __func__
         )
         );
 
   if (SessionSuccess){
     InfoTable = GetSpdmSecuredSessionInfo();
     if (InfoTable == NULL){
-        DEBUG((DEBUG_ERROR, "%a: SecuredSessionInfo is not found\n", __FUNCTION__));
+        DEBUG((DEBUG_ERROR, "%a: SecuredSessionInfo is not found\n", __func__));
         return EFI_NOT_STARTED;
     }
     

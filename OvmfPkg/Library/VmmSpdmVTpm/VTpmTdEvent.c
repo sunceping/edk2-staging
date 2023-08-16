@@ -54,7 +54,7 @@ CreateStartupLocalityEvent (
                                  );
 
   if (GuidHobRawData == NULL) {
-    DEBUG ((DEBUG_ERROR, "%a : BuildGuidHob failed \n", __FUNCTION__));
+    DEBUG ((DEBUG_ERROR, "%a : BuildGuidHob failed \n", __func__));
     return EFI_OUT_OF_RESOURCES;
   }
 
@@ -88,14 +88,14 @@ GetTdReportFromHOB(
 
   GuidHob.Guid = GetFirstGuidHob (&gEdkiiTdReportInfoHobGuid);
   if (GuidHob.Guid == NULL) {
-    DEBUG ((DEBUG_ERROR, "%a: The Guid HOB is not found \n", __FUNCTION__));
+    DEBUG ((DEBUG_ERROR, "%a: The Guid HOB is not found \n", __func__));
     return EFI_NOT_FOUND;
   }
 
   HobLength = sizeof (EFI_HOB_GUID_TYPE) + sizeof (TDREPORT_STRUCT);
 
   if (GuidHob.Guid->Header.HobLength != HobLength) {
-    DEBUG ((DEBUG_ERROR, "%a: The GuidHob.Guid->Header.HobLength is not equal HobLength, %d vs %d \n", __FUNCTION__, GuidHob.Guid->Header.HobLength, HobLength));
+    DEBUG ((DEBUG_ERROR, "%a: The GuidHob.Guid->Header.HobLength is not equal HobLength, %d vs %d \n", __func__, GuidHob.Guid->Header.HobLength, HobLength));
     return EFI_OUT_OF_RESOURCES;
   }
 
@@ -143,7 +143,7 @@ GetAndHashTdReportForVtpmTd (
 
   Status = GetTdReportFromHOB (Report, sizeof(Report));
   if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_ERROR, "%a: GetTdReportFromHOB failed with %r\n", __FUNCTION__, Status));
+    DEBUG ((DEBUG_ERROR, "%a: GetTdReportFromHOB failed with %r\n", __func__, Status));
     return Status;
   }
 
@@ -241,7 +241,7 @@ CreateHCRTMComponentEvent (
                                  DataLength
                                  );
   if (GuidHobRawData == NULL) {
-    DEBUG ((DEBUG_ERROR, "%a : BuildGuidHob failed \n", __FUNCTION__));
+    DEBUG ((DEBUG_ERROR, "%a : BuildGuidHob failed \n", __func__));
     Status = EFI_UNSUPPORTED;
     goto CleanComponent;
   }
@@ -302,7 +302,7 @@ CreateVtpmTdReportEvenmt (
 
   Status = GetTdReportFromHOB (TdReportData, sizeof (TdReportData));
   if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_ERROR, "%a: GetTdReportFromHOB failed with %r\n", __FUNCTION__, Status));
+    DEBUG ((DEBUG_ERROR, "%a: GetTdReportFromHOB failed with %r\n", __func__, Status));
     return Status;
   }
 
@@ -311,14 +311,14 @@ CreateVtpmTdReportEvenmt (
   ZeroMem (TdReport->ReportMacStruct.Mac, sizeof (TdReport->ReportMacStruct.Mac));
 
   if (!Sha384HashAll (TdReport, sizeof (TDREPORT_STRUCT), TdReportSha384)) {
-    DEBUG ((DEBUG_ERROR, "%a: Sha384HashAll failed \n", __FUNCTION__));
+    DEBUG ((DEBUG_ERROR, "%a: Sha384HashAll failed \n", __func__));
     return EFI_ABORTED;
   }
 
   DigestList.count              = 3;
   DigestList.digests[0].hashAlg = TPM_ALG_SHA256;
   if (!Sha256HashAll (TdReportSha384, SHA384_DIGEST_SIZE, Digest256)) {
-    DEBUG ((DEBUG_ERROR, "%a: Sha256HashAll failed \n", __FUNCTION__));
+    DEBUG ((DEBUG_ERROR, "%a: Sha256HashAll failed \n", __func__));
     return EFI_ABORTED;
   }
 
@@ -326,7 +326,7 @@ CreateVtpmTdReportEvenmt (
 
   DigestList.digests[1].hashAlg = TPM_ALG_SHA384;
   if (!Sha384HashAll (TdReportSha384, SHA384_DIGEST_SIZE, Digest384)) {
-    DEBUG ((DEBUG_ERROR, "%a: Sha384HashAll failed \n", __FUNCTION__));
+    DEBUG ((DEBUG_ERROR, "%a: Sha384HashAll failed \n", __func__));
     return EFI_ABORTED;
   }
 
@@ -334,7 +334,7 @@ CreateVtpmTdReportEvenmt (
 
   DigestList.digests[2].hashAlg = TPM_ALG_SHA512;
   if (!Sha512HashAll (TdReportSha384, SHA384_DIGEST_SIZE, Digest512)) {
-    DEBUG ((DEBUG_ERROR, "%a: Sha512HashAll failed \n", __FUNCTION__));
+    DEBUG ((DEBUG_ERROR, "%a: Sha512HashAll failed \n", __func__));
     return EFI_ABORTED;
   }
 
@@ -347,7 +347,7 @@ CreateVtpmTdReportEvenmt (
                                  DataLength
                                  );
   if (GuidHobRawData == NULL) {
-    DEBUG ((DEBUG_ERROR, "%a : BuildGuidHob failed \n", __FUNCTION__));
+    DEBUG ((DEBUG_ERROR, "%a : BuildGuidHob failed \n", __func__));
     return EFI_UNSUPPORTED;
   }
 
@@ -370,14 +370,14 @@ ClearTdReportInGuidHOB (
 
   GuidHob.Guid = GetFirstGuidHob (&gEdkiiTdReportInfoHobGuid);
   if (GuidHob.Guid == NULL) {
-    DEBUG ((DEBUG_ERROR, "%a: The Guid HOB is not found \n", __FUNCTION__));
+    DEBUG ((DEBUG_ERROR, "%a: The Guid HOB is not found \n", __func__));
     return;
   }
 
   HobLength = sizeof (EFI_HOB_GUID_TYPE) + sizeof (TDREPORT_STRUCT);
 
   if (GuidHob.Guid->Header.HobLength != HobLength) {
-    DEBUG ((DEBUG_ERROR, "%a: The GuidHob.Guid->Header.HobLength is not equal HobLength, %d vs %d \n", __FUNCTION__, GuidHob.Guid->Header.HobLength, HobLength));
+    DEBUG ((DEBUG_ERROR, "%a: The GuidHob.Guid->Header.HobLength is not equal HobLength, %d vs %d \n", __func__, GuidHob.Guid->Header.HobLength, HobLength));
     return;
   }
 

@@ -233,7 +233,7 @@ VtpmClearSharedBuffer (
 
   Status = MemEncryptTdxClearPageSharedBit (0, (PHYSICAL_ADDRESS)Buffer, Pages);
   if (EFI_ERROR(Status)) {
-    DEBUG ((DEBUG_INFO, "%a: MemEncryptTdxClearPageSharedBit failed with %r \n", __FUNCTION__ , Status));
+    DEBUG ((DEBUG_INFO, "%a: MemEncryptTdxClearPageSharedBit failed with %r \n", __func__ , Status));
   }
 
   if (Buffer){
