@@ -512,6 +512,7 @@ SaveTdReportToHob(
  * Get the TD_REPORT with the public key.
  *
  * @param  Report         A pointer to the TD_REPORT data.
+ * @param  ReportSize     The size of TD_REPORT data.
  *
  * @return EFI_SUCCESS    Get TD_REPORT data was successfully.
  * @return Others         Some errors.

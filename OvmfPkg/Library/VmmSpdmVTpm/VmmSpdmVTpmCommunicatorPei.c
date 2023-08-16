@@ -503,7 +503,11 @@ VtpmAllocateSharedBuffer (
 {
 
 #ifdef TDX_PEI_LESS_BOOT
-  ASSERT (EFI_PAGES_TO_SIZE (Pages) < SIZE_2MB);
+  if (EFI_PAGES_TO_SIZE (Pages)  > SIZE_2MB) {
+    DEBUG((DEBUG_ERROR, "%a: Sharead Buffer size (%x) should be less than %x in TDX_PEI_LESS_BOOT\n", __FUNCTION__, EFI_PAGES_TO_SIZE (Pages), SIZE_2MB));
+    return EFI_INVALID_PARAMETER;
+  }
+
   *SharedBuffer = (UINT8 *)(UINTN)(FixedPcdGet32 (PcdOvmfSecScratchMemoryBase) + SIZE_4MB);
   return EFI_SUCCESS;
 #endif

@@ -374,7 +374,7 @@ InternalBuildGuidHobForTdxMeasurement (
       if (WorkArea->TdxWorkArea.SecTdxWorkArea.TdxMeasurementsData.MeasurementsBitmap & TDX_MEASUREMENT_TDHOB_BITMASK) {
           Status = InitDigestList (Tpm2ActivePcrBanks,&DigestList, TdHob, TdHobSize);
           if (EFI_ERROR(Status)) {
-            DEBUG((DEBUG_ERROR, "%a: InitDigestList failed with %r\n", __FUNCTION__, Status));
+            DEBUG((DEBUG_ERROR, "%a: InitDigestList failed with %r\n", __func__, Status));
             return Status;
           }
 
@@ -386,7 +386,7 @@ InternalBuildGuidHobForTdxMeasurement (
                   &DigestList
                   );
         if (EFI_ERROR (Status)) {
-          DEBUG((DEBUG_ERROR, "%a: BuildTdxMeasurementGuidHobForVtpm failed with %r\n", __FUNCTION__, Status));
+          DEBUG((DEBUG_ERROR, "%a: BuildTdxMeasurementGuidHobForVtpm failed with %r\n", __func__, Status));
           return Status;
         }
 
@@ -395,7 +395,7 @@ InternalBuildGuidHobForTdxMeasurement (
       if (WorkArea->TdxWorkArea.SecTdxWorkArea.TdxMeasurementsData.MeasurementsBitmap & TDX_MEASUREMENT_CFVIMG_BITMASK) {
           Status = InitDigestList (Tpm2ActivePcrBanks,&DigestList, (UINT8 *)(UINTN)FvBase, FvLength);
           if (EFI_ERROR(Status)) {
-            DEBUG((DEBUG_ERROR, "%a: InitDigestList failed with %r\n", __FUNCTION__, Status));
+            DEBUG((DEBUG_ERROR, "%a: InitDigestList failed with %r\n", __func__, Status));
             return Status;
           }
 

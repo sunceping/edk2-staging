@@ -75,7 +75,7 @@ typedef struct {
   UINT32     SendReceiveBufferSize;
   BOOLEAN    SendReceiveBufferAcquired;
 
-  // Record the certchain buffer info to drop after StartSession
+  // Record the certchain buffer info to drop end of session conntect
   UINT64     SpdmCertChainBufferAddress;
   UINT32     SpdmCertChainBufferSize;
 } VMM_SPDM_CONTEXT;

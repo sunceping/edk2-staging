@@ -113,7 +113,8 @@ GetTdReportFromHOB(
  * Get and hash TD_REPORT for H-CRTM sequence.
  * Refer to VTPM 0.7.4
  *
- * @param[out]            The pointer to the digest buffer
+ * @param[out] Digest         The pointer to the digest buffer
+ * @param[in]  DigestSize     The size of the digest buffer
  * 
  * @return EFI_SUCCESS    Get and hash successfully.
  * @return Others         Some errors occurred
@@ -129,6 +130,10 @@ GetAndHashTdReportForVtpmTd (
   TDREPORT_STRUCT  *TdReport;
   UINT8            Report[sizeof(TDREPORT_STRUCT)];
   UINT8            HashValue[SHA384_DIGEST_SIZE];
+
+  if (Digest == NULL || DigestSize < SHA384_DIGEST_SIZE) {
+    return EFI_INVALID_PARAMETER;
+  }
 
   ZeroMem (HashValue, SHA384_DIGEST_SIZE);
 
