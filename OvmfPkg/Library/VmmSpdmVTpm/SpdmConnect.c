@@ -88,7 +88,6 @@ STATIC
 SPDM_RETURN
 VmmSpdmAcquireSenderBuffer (
   IN  VOID  *SpdmContext,
-  IN UINTN  *MaxMsgSize,
   IN VOID   **MsgBufPtr
   )
 {
@@ -99,7 +98,6 @@ VmmSpdmAcquireSenderBuffer (
   ASSERT (Context->Signature == VMM_SPDM_CONTEXT_SIGNATURE);
   ASSERT (Context->Valid);
   ASSERT (!Context->SendReceiveBufferAcquired);
-  *MaxMsgSize = Context->SendReceiveBufferSize;
   *MsgBufPtr  = Context->SendReceiveBuffer;
   ZeroMem (Context->SendReceiveBuffer, Context->SendReceiveBufferSize);
   Context->SendReceiveBufferAcquired = TRUE;
@@ -129,7 +127,6 @@ STATIC
 SPDM_RETURN
 VmmSpdmAcquireReceiverBuffer (
   IN VOID   *SpdmContext,
-  IN UINTN  *MaxMsgSize,
   IN VOID   **MsgBufPtr
   )
 {
@@ -139,7 +136,6 @@ VmmSpdmAcquireReceiverBuffer (
   ASSERT (Context->Signature == VMM_SPDM_CONTEXT_SIGNATURE);
   ASSERT (Context->Valid);
   ASSERT (!Context->SendReceiveBufferAcquired);
-  *MaxMsgSize = Context->SendReceiveBufferSize;
   *MsgBufPtr  = Context->SendReceiveBuffer;
   ZeroMem (Context->SendReceiveBuffer, Context->SendReceiveBufferSize);
   Context->SendReceiveBufferAcquired = TRUE;
@@ -215,7 +211,7 @@ VtpmTransportEncodeMessage (
   UINTN                               TransportHeaderSize;
 
   SpdmSecuredMessageCallbacks.version =
-    SPDM_SECURED_MESSAGE_CALLBACKS_VERSION;
+    LIBSPDM_SECURED_MESSAGE_CALLBACKS_VERSION;
   SpdmSecuredMessageCallbacks.get_sequence_number =
     VtpmGetSequenceNumber;
   SpdmSecuredMessageCallbacks.get_max_random_number_count =
@@ -358,7 +354,7 @@ VtpmTransportDecodeMessage (
   SpdmSetLastSpdmErrorStruct (SpdmContext, &SpdmError);
 
   SpdmSecuredMessageCallbacks.version =
-    SPDM_SECURED_MESSAGE_CALLBACKS_VERSION;
+    LIBSPDM_SECURED_MESSAGE_CALLBACKS_VERSION;
   SpdmSecuredMessageCallbacks.get_sequence_number =
     VtpmGetSequenceNumber;
   SpdmSecuredMessageCallbacks.get_max_random_number_count =
@@ -467,6 +463,11 @@ VtpmTransportGetHeaderSize (
   return sizeof (VTPM_MESSAGE_HEADER) + 2; // sizeof(spdm_secured_message_cipher_header_t) == 2
 }
 
+#define  LIBSPDM_TRANSPORT_HEADER_SIZE (sizeof (VTPM_MESSAGE_HEADER) + 2)
+#define  LIBSPDM_MAX_SPDM_MSG_SIZE      0x1200
+#define  LIBSPDM_TRANSPORT_TAIL_SIZE    64
+#define  LIBSPDM_MAX_SENDER_RECEIVER_BUFFER_SIZE  (0x1200 + \
+                                      LIBSPDM_TRANSPORT_TAIL_SIZE)
 /**
  * Initialize the SpdmContext.
  * Before calling this function, the memory of the context shall have been allocated.
@@ -504,12 +505,16 @@ VmmSpdmVTpmInitSpdmContext (
                             );
   SpdmRegisterTransportLayerFunc (
                                   SpdmContext,
+                                  LIBSPDM_MAX_SPDM_MSG_SIZE,
+                                  LIBSPDM_TRANSPORT_HEADER_SIZE,
+                                  LIBSPDM_TRANSPORT_TAIL_SIZE,
                                   VtpmTransportEncodeMessage,
-                                  VtpmTransportDecodeMessage,
-                                  VtpmTransportGetHeaderSize
+                                  VtpmTransportDecodeMessage
                                   );
   SpdmRegisterDeviceBufferFunc (
                                 SpdmContext,
+                                LIBSPDM_MAX_SENDER_RECEIVER_BUFFER_SIZE,
+                                LIBSPDM_MAX_SENDER_RECEIVER_BUFFER_SIZE,
                                 VmmSpdmAcquireSenderBuffer,
                                 VmmSpdmReleaseSenderBuffer,
                                 VmmSpdmAcquireReceiverBuffer,
@@ -547,7 +552,7 @@ VmmSpdmVTpmInitSpdmContext (
     return EFI_ABORTED;
   }
 
-  Data8      = SPDM_MEASUREMENT_BLOCK_HEADER_SPECIFICATION_DMTF;
+  Data8      = SPDM_MEASUREMENT_SPECIFICATION_DMTF;
   SpdmStatus = SpdmSetData (
                             SpdmContext,
                             LIBSPDM_DATA_MEASUREMENT_SPEC,
@@ -993,6 +998,8 @@ DoStartSession (
   Status = SpdmStartSession (
                              SpdmContext,
                              FALSE,
+                             NULL,
+                             0,
                              UseMeasurementSummaryHashType,
                              SlotId,
                              SessionPolicy,

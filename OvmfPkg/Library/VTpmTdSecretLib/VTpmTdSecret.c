@@ -9,7 +9,14 @@
 #include <Stub/SpdmLibStub.h>
 #include "library/spdm_crypt_lib.h"
 #include "hal/library/cryptlib/cryptlib_ec.h"
-#include "library/spdm_device_secret_lib.h"
+// #include "library/spdm_device_secret_lib.h"
+#include "hal/library/requester/psklib.h"
+#include "hal/library/requester/reqasymsignlib.h"
+#include "hal/library/responder/asymsignlib.h"
+#include "hal/library/responder/csrlib.h"
+#include "hal/library/responder/measlib.h"
+#include "hal/library/responder/psklib.h"
+#include "hal/library/responder/setcertlib.h"
 #include <Library/BaseLib.h>
 #include <Library/BaseMemoryLib.h>
 #include <Library/UefiLib.h>
