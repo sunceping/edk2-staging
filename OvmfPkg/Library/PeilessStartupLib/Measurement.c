@@ -20,6 +20,7 @@
 #include "PeilessStartupInternal.h"
 #include "WorkArea.h"
 #include <Library/HobLib.h>
+#include <Library/Tpm2CommandLib.h>
 
 /**
   Make sure that the current PCR allocations, the TPM supported PCRs,
