@@ -30,38 +30,38 @@
  * It follows the SPDM Specification.
  **/
 
-#if LIBSPDM_ENABLE_CAPABILITY_MEAS_CAP
-libspdm_return_t
-libspdm_measurement_collection (
-  spdm_version_number_t  spdm_version,
-  uint8_t                measurement_specification,
-  uint32_t               measurement_hash_algo,
-  uint8_t                mesurements_index,
-  uint8_t                request_attribute,
-  uint8_t                *content_changed,
-  uint8_t                *device_measurement_count,
-  void                   *device_measurement,
-  size_t                 *device_measurement_size
-  )
-{
-  return LIBSPDM_STATUS_UNSUPPORTED_CAP;
-}
+// #if LIBSPDM_ENABLE_CAPABILITY_MEAS_CAP
+// libspdm_return_t
+// libspdm_measurement_collection (
+//   spdm_version_number_t  spdm_version,
+//   uint8_t                measurement_specification,
+//   uint32_t               measurement_hash_algo,
+//   uint8_t                mesurements_index,
+//   uint8_t                request_attribute,
+//   uint8_t                *content_changed,
+//   uint8_t                *device_measurement_count,
+//   void                   *device_measurement,
+//   size_t                 *device_measurement_size
+//   )
+// {
+//   return LIBSPDM_STATUS_UNSUPPORTED_CAP;
+// }
 
-bool
-libspdm_generate_measurement_summary_hash (
-  spdm_version_number_t  spdm_version,
-  uint32_t               base_hash_algo,
-  uint8_t                measurement_specification,
-  uint32_t               measurement_hash_algo,
-  uint8_t                measurement_summary_hash_type,
-  uint8_t                *measurement_summary_hash,
-  size_t                 *measurement_summary_hash_size
-  )
-{
-  return false;
-}
+// bool
+// libspdm_generate_measurement_summary_hash (
+//   spdm_version_number_t  spdm_version,
+//   uint32_t               base_hash_algo,
+//   uint8_t                measurement_specification,
+//   uint32_t               measurement_hash_algo,
+//   uint8_t                measurement_summary_hash_type,
+//   uint8_t                *measurement_summary_hash,
+//   size_t                 *measurement_summary_hash_size
+//   )
+// {
+//   return false;
+// }
 
-#endif /* LIBSPDM_ENABLE_CAPABILITY_MEAS_CAP */
+// #endif /* LIBSPDM_ENABLE_CAPABILITY_MEAS_CAP */
 
 #if LIBSPDM_ENABLE_CAPABILITY_MUT_AUTH_CAP
 STATIC
@@ -298,32 +298,32 @@ libspdm_psk_master_secret_hkdf_expand (
 
 #endif /* LIBSPDM_ENABLE_CAPABILITY_PSK_EX_CAP */
 
-#if LIBSPDM_ENABLE_CAPABILITY_SET_CERT_CAP
-bool
-libspdm_write_certificate_to_nvm (
-  uint8_t     slot_id,
-  const void  *cert_chain,
-  size_t      cert_chain_size
-  )
-{
-  return false;
-}
+// #if LIBSPDM_ENABLE_CAPABILITY_SET_CERT_CAP
+// bool
+// libspdm_write_certificate_to_nvm (
+//   uint8_t     slot_id,
+//   const void  *cert_chain,
+//   size_t      cert_chain_size
+//   )
+// {
+//   return false;
+// }
 
-#endif /* LIBSPDM_ENABLE_CAPABILITY_SET_CERT_CAP */
+// #endif /* LIBSPDM_ENABLE_CAPABILITY_SET_CERT_CAP */
 
-#if LIBSPDM_ENABLE_CAPABILITY_GET_CSR_CAP
-bool
-libspdm_gen_csr (
-  uint32_t  base_hash_algo,
-  uint32_t  base_asym_algo,
-  bool      *need_reset,
-  uint8_t   *requester_info,
-  size_t    requester_info_length,
-  size_t    *csr_len,
-  uint8_t   **csr_pointer
-  )
-{
-  return false;
-}
+// #if LIBSPDM_ENABLE_CAPABILITY_GET_CSR_CAP
+// bool
+// libspdm_gen_csr (
+//   uint32_t  base_hash_algo,
+//   uint32_t  base_asym_algo,
+//   bool      *need_reset,
+//   uint8_t   *requester_info,
+//   size_t    requester_info_length,
+//   size_t    *csr_len,
+//   uint8_t   **csr_pointer
+//   )
+// {
+//   return false;
+// }
 
-#endif /* LIBSPDM_ENABLE_CAPABILITY_GET_CSR_CAP */
+// #endif /* LIBSPDM_ENABLE_CAPABILITY_GET_CSR_CAP */

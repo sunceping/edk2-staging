@@ -338,7 +338,6 @@ PrepareForVtpm (
   EFI_STATUS            Status;
   EFI_PHYSICAL_ADDRESS  Address;
   VOID                  *Registration;
-  UINTN                 Size;
   EFI_EVENT             AcpiTableEvent;
 
   VTPM_SECURE_SESSION_INFO_TABLE *InfoTable;
@@ -354,7 +353,8 @@ PrepareForVtpm (
 
 
  #ifdef TDX_PEI_LESS_BOOT
-  OVMF_WORK_AREA                 *WorkArea;
+  OVMF_WORK_AREA  *WorkArea;
+  UINTN           Size;
 
   WorkArea = (OVMF_WORK_AREA *)FixedPcdGet32 (PcdOvmfWorkAreaBase);
   if (WorkArea == NULL) {
