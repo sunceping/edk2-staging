@@ -1089,9 +1089,6 @@ SetSpdmCertChainBuffer(
   }
 
   Status = InitialVtpmTdCertChain(CertChain,&CertChainSize);
-  
-  Context->SpdmCertChainBufferAddress = (UINT64)CertChain;
-  Context->SpdmCertChainBufferSize    = CertChainSize;
 
   if (EFI_ERROR(Status)) {
     DEBUG ((DEBUG_ERROR, "InitialVtpmTdCertChain failed with %r\n", Status));
@@ -1113,6 +1110,8 @@ SetSpdmCertChainBuffer(
     goto CleanBuffer;
   }
 
+  Context->SpdmCertChainBufferAddress = (UINT64)CertChain;
+  Context->SpdmCertChainBufferSize    = CertChainSize;
   return EFI_SUCCESS;
 
 CleanBuffer:
