@@ -11,6 +11,14 @@
 
 #define VTPM_ALIGNMENT  1
 
+UINT16
+VtpmGetSpdmMessageVersion (
+  UINT16 SpdmMessageVersion
+  )
+{
+  return SpdmMessageVersion;
+}
+
 /**
  * Get sequence number in an SPDM secure message.
  *

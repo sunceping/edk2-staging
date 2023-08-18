@@ -215,8 +215,9 @@ VtpmTransportEncodeMessage (
   SpdmSecuredMessageCallbacks.get_sequence_number =
     VtpmGetSequenceNumber;
   SpdmSecuredMessageCallbacks.get_max_random_number_count =
-    VtpmGetMaxRandomNumberCount;
-
+    VtpmGetMaxRandomNumberCount; 
+  SpdmSecuredMessageCallbacks.get_secured_spdm_version = 
+    VtpmGetSpdmMessageVersion;
   // all app message shall be secured.
   if (IsAppMessage && (SessionId == NULL)) {
     return LIBSPDM_STATUS_UNSUPPORTED_CAP;
@@ -231,7 +232,6 @@ VtpmTransportEncodeMessage (
     if (SecuredMessageContext == NULL) {
       return LIBSPDM_STATUS_UNSUPPORTED_CAP;
     }
-
     // encode the message to APP message
     Status = LibSpdmVtpmEncodeAppMessage (
                                           IsAppMessage,
@@ -359,7 +359,8 @@ VtpmTransportDecodeMessage (
     VtpmGetSequenceNumber;
   SpdmSecuredMessageCallbacks.get_max_random_number_count =
     VtpmGetMaxRandomNumberCount;
-
+  SpdmSecuredMessageCallbacks.get_secured_spdm_version = 
+    VtpmGetSpdmMessageVersion;
   if ((SessionId == NULL) || (IsAppMessage == NULL)) {
     return LIBSPDM_STATUS_UNSUPPORTED_CAP;
   }

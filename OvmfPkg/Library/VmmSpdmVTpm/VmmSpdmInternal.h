@@ -122,6 +122,11 @@ VtpmTransportGetHeaderSize (
   IN VOID  *SpdmContext
   );
 
+UINT16
+VtpmGetSpdmMessageVersion (
+  UINT16 SpdmMessageVersion
+  );
+
 UINT8
 VtpmGetSequenceNumber (
   IN UINT64  SequenceNumber OPTIONAL,
