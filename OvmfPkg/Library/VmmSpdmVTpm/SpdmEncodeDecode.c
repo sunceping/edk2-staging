@@ -621,3 +621,27 @@ VTpmCommDecodeMessage (
 
   return EFI_SUCCESS;
 }
+
+size_t libspdm_secret_lib_challenge_opaque_data_size;
+
+bool libspdm_encap_challenge_opaque_data(
+    spdm_version_number_t spdm_version,
+    uint8_t slot_id,
+    uint8_t *measurement_summary_hash,
+    size_t measurement_summary_hash_size,
+    void *opaque_data,
+    size_t *opaque_data_size)
+{
+    size_t index;
+
+    ASSERT(libspdm_secret_lib_challenge_opaque_data_size <= *opaque_data_size);
+
+    *opaque_data_size = libspdm_secret_lib_challenge_opaque_data_size;
+
+    for (index = 0; index < *opaque_data_size; index++)
+    {
+        ((uint8_t *)opaque_data)[index] = (uint8_t)index;
+    }
+
+    return true;
+}
