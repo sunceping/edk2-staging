@@ -21,6 +21,8 @@
 #include <IndustryStandard/Tdx.h>
 #include <Library/MemEncryptTdxLib.h>
 
+
+#define  LIBSPDM_SCRATCH_BUFFER_SIZE  ((0x1264 + 6) + (0x1200) + (0x1264 + 6) + (0x1264 + 6) + (0x1264 + 6) + (0x1200))
 /**
  * Calculate the buffers' size of a VmmSpdmContext.
  */
@@ -40,7 +42,8 @@ VmmSpmdCalculateSize (
   SpdmContextSize = SpdmGetContextSize ();
 
   ContextBuffersSize->SpdmContextSize       = SpdmContextSize;
-  ContextBuffersSize->ScratchBufferSize     = SpdmGetSizeofRequiredScratchBuffer (NULL);
+  // ContextBuffersSize->ScratchBufferSize     = SpdmGetSizeofRequiredScratchBuffer (NULL);
+  ContextBuffersSize->ScratchBufferSize     = LIBSPDM_SCRATCH_BUFFER_SIZE;
   ContextBuffersSize->SendReceiveBufferSize = 0x1264; // TODO find the macro
 
   return EFI_SUCCESS;
