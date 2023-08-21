@@ -77,28 +77,36 @@ InitDigestList (
     return EFI_INVALID_PARAMETER;
   }
 
-  if (!Sha256HashAll (DataToHash, DataSize, Hash256) ||
-      !Sha384HashAll (DataToHash, DataSize, Hash384) ||
-      !Sha512HashAll (DataToHash, DataSize, Hash512))
-  {
-    return EFI_ABORTED;
-  }
-
   DigestList->count = 0;
 
   if ((Tpm2ActivePcrBanks & EFI_TCG2_BOOT_HASH_ALG_SHA256) != 0) {
+    if (!Sha256HashAll (DataToHash, DataSize, Hash256)) {
+      DEBUG ((DEBUG_INFO, "Sha256HashAll failed\n"));
+      return EFI_ABORTED;
+    }
+
     DigestList->digests[DigestList->count].hashAlg = TPM_ALG_SHA256;
     CopyMem (DigestList->digests[0].digest.sha256, Hash256, SHA256_DIGEST_SIZE);
     DigestList->count++;
   }
 
   if ((Tpm2ActivePcrBanks & EFI_TCG2_BOOT_HASH_ALG_SHA384) != 0) {
+    if (!Sha384HashAll (DataToHash, DataSize, Hash384)) {
+      DEBUG ((DEBUG_INFO, "Sha384HashAll failed\n"));
+      return EFI_ABORTED;
+    }
+
     DigestList->digests[DigestList->count].hashAlg = TPM_ALG_SHA384;
     CopyMem (DigestList->digests[1].digest.sha384, Hash384, SHA384_DIGEST_SIZE);
     DigestList->count++;
   }
 
   if ((Tpm2ActivePcrBanks & EFI_TCG2_BOOT_HASH_ALG_SHA512) != 0) {
+    if (!Sha512HashAll (DataToHash, DataSize, Hash512)) {
+      DEBUG ((DEBUG_INFO, "Sha512HashAll failed\n"));
+      return EFI_ABORTED;
+    }
+
     DigestList->digests[DigestList->count].hashAlg = TPM_ALG_SHA512;
     CopyMem (DigestList->digests[2].digest.sha512, Hash512, SHA512_DIGEST_SIZE);
     DigestList->count++;
@@ -106,7 +114,6 @@ InitDigestList (
 
   return EFI_SUCCESS;
 }
-
 
 /**
  * Hash TdHob info and extend to PCR for vTPM.
@@ -156,7 +163,6 @@ HashAndExtendTdHobToVtpm (
 
   return Status;
 }
-
 
 /**
  * Hash Cfv Image info and extend to PCR for vTPM.
@@ -276,7 +282,6 @@ DoMeasurement (
   return Status;
 }
 
-
 /**
  * Set Tpm2ActivePcrBanks in WorkArea when vTPM is actived.
  *
@@ -288,7 +293,7 @@ DoMeasurement (
 STATIC
 EFI_STATUS
 SetTpm2ActivePcrBanksInWorkarea (
-  UINT32   TpmActivePcrBanks
+  UINT32  TpmActivePcrBanks
   )
 {
   OVMF_WORK_AREA  *WorkArea;
@@ -338,21 +343,20 @@ PeilessStartupDoMeasurement (
 
     TpmActivePcrBanks = SyncPcrAllocationsAndPcrMask ();
 
-    if (EFI_ERROR (SetTpm2ActivePcrBanksInWorkarea ( TpmActivePcrBanks))) {
+    if (EFI_ERROR (SetTpm2ActivePcrBanksInWorkarea (TpmActivePcrBanks))) {
       DEBUG ((DEBUG_INFO, "Set TdxMeasurement In Workarea failed.\n"));
       break;
     }
 
-    if (EFI_ERROR( DoMeasurement ())) {
+    if (EFI_ERROR (DoMeasurement ())) {
       DEBUG ((DEBUG_INFO, "Do Measurement failed.\n"));
       break;
     }
-
   } while (FALSE);
 
   if (SharedMemoryReady) {
-    if (EFI_ERROR(TdxHelperDropSharedBuffer  ())) {
-        DEBUG ((DEBUG_INFO, "TdxHelperDropSharedBuffer failed\n"));
+    if (EFI_ERROR (TdxHelperDropSharedBuffer ())) {
+      DEBUG ((DEBUG_INFO, "TdxHelperDropSharedBuffer failed\n"));
     }
   }
 
