@@ -20,7 +20,7 @@
 #include "PeilessStartupInternal.h"
 #include "WorkArea.h"
 #include <Library/HobLib.h>
-#include <Library/Tpm2CommandLib.h>
+#include <IndustryStandard/VTpmTd.h>
 
 /**
   Make sure that the current PCR allocations, the TPM supported PCRs,
@@ -50,6 +50,17 @@ SyncPcrAllocationsAndPcrMask (
   return TpmActivePcrBanks;
 }
 
+/**
+ * Initialize the digest list by the active pcr banks.
+ *
+ * @param Tpm2ActivePcrBanks      The active pcr banks in vTPM.
+ * @param DigestList              A pointer of TPML_DIGEST_VALUES.
+ * @param DataToHash              A pointer of data.
+ * @param DataSize                The size of the data.
+ *
+ * @retval EFI_SUCCESS  Successfully init.
+ * @retval Others       Other error as indicated
+ */
 STATIC
 EFI_STATUS
 InitDigestList (
@@ -67,28 +78,40 @@ InitDigestList (
     return EFI_INVALID_PARAMETER;
   }
 
-  if (!Sha256HashAll (DataToHash, DataSize, Hash256) ||
-      !Sha384HashAll (DataToHash, DataSize, Hash384) ||
-      !Sha512HashAll (DataToHash, DataSize, Hash512))
-  {
-    return EFI_ABORTED;
-  }
+  ZeroMem(Hash256, SHA256_DIGEST_SIZE);
+  ZeroMem(Hash384, SHA384_DIGEST_SIZE);
+  ZeroMem(Hash512, SHA512_DIGEST_SIZE);
 
   DigestList->count = 0;
 
   if ((Tpm2ActivePcrBanks & EFI_TCG2_BOOT_HASH_ALG_SHA256) != 0) {
+    if (!Sha256HashAll (DataToHash, DataSize, Hash256)) {
+      DEBUG ((DEBUG_ERROR, "Sha256HashAll failed\n"));
+      return EFI_ABORTED;
+    }
+
     DigestList->digests[DigestList->count].hashAlg = TPM_ALG_SHA256;
     CopyMem (DigestList->digests[0].digest.sha256, Hash256, SHA256_DIGEST_SIZE);
     DigestList->count++;
   }
 
   if ((Tpm2ActivePcrBanks & EFI_TCG2_BOOT_HASH_ALG_SHA384) != 0) {
+    if (!Sha384HashAll (DataToHash, DataSize, Hash384)) {
+      DEBUG ((DEBUG_ERROR, "Sha384HashAll failed\n"));
+      return EFI_ABORTED;
+    }
+
     DigestList->digests[DigestList->count].hashAlg = TPM_ALG_SHA384;
     CopyMem (DigestList->digests[1].digest.sha384, Hash384, SHA384_DIGEST_SIZE);
     DigestList->count++;
   }
 
   if ((Tpm2ActivePcrBanks & EFI_TCG2_BOOT_HASH_ALG_SHA512) != 0) {
+    if (!Sha512HashAll (DataToHash, DataSize, Hash512)) {
+      DEBUG ((DEBUG_ERROR, "Sha512HashAll failed\n"));
+      return EFI_ABORTED;
+    }
+
     DigestList->digests[DigestList->count].hashAlg = TPM_ALG_SHA512;
     CopyMem (DigestList->digests[2].digest.sha512, Hash512, SHA512_DIGEST_SIZE);
     DigestList->count++;
@@ -97,18 +120,32 @@ InitDigestList (
   return EFI_SUCCESS;
 }
 
+/**
+ * Hash TdHob info and extend to PCR for vTPM.
+ *
+ * @param Tpm2ActivePcrBanks      The active pcr banks in vTPM.
+ * @param PcrIndex                Pcr index
+ *
+ * @retval EFI_SUCCESS  Successfully hash and extend.
+ * @retval Others       Other error as indicated
+ */
 STATIC
 EFI_STATUS
-HashExtendTdHobToVtpm (
-  UINT32  Tpm2ActivePcrBanks,
-  UINT32  PcrIndex
+HashAndExtendTdHobToVtpm (
+  UINT32             Tpm2ActivePcrBanks,
+  UINT32             PcrIndex,
+  TPML_DIGEST_VALUES   *TdHobHashValue
   )
 {
   EFI_PEI_HOB_POINTERS  Hob;
-  TPML_DIGEST_VALUES    DigestList;
   EFI_STATUS            Status;
   VOID                  *TdHob;
   UINTN                 TdHobSize;
+
+  if (TdHobHashValue == NULL){
+    return EFI_INVALID_PARAMETER;
+  }
+  
 
   TdHob   = (VOID *)(UINTN)FixedPcdGet32 (PcdOvmfSecGhcbBase);
   Hob.Raw = (UINT8 *)TdHob;
@@ -120,16 +157,16 @@ HashExtendTdHobToVtpm (
     Hob.Raw = GET_NEXT_HOB (Hob);
   }
 
-  ZeroMem (&DigestList, sizeof (TPML_DIGEST_VALUES));
+  ZeroMem (TdHobHashValue, sizeof (TPML_DIGEST_VALUES));
 
   TdHobSize = (UINTN)((UINT8 *)Hob.Raw - (UINT8 *)TdHob);
-  Status    = InitDigestList (Tpm2ActivePcrBanks, &DigestList, TdHob, TdHobSize);
+  Status    = InitDigestList (Tpm2ActivePcrBanks, TdHobHashValue, TdHob, TdHobSize);
   if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_INFO, "%a: InitDigestList failed with %r\n", __func__, Status));
     return Status;
   }
 
-  Status = Tpm2PcrExtend (PcrIndex, &DigestList);
+  Status = Tpm2PcrExtend (PcrIndex, TdHobHashValue);
   if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_INFO, "%a: Tpm2PcrExtend failed with %r\n", __func__, Status));
   }
@@ -137,28 +174,45 @@ HashExtendTdHobToVtpm (
   return Status;
 }
 
+/**
+ * Hash Cfv Image info and extend to PCR for vTPM.
+ *
+ * @param Tpm2ActivePcrBanks      The active pcr banks in vTPM.
+ * @param PcrIndex                Pcr index
+ *
+ * @retval EFI_SUCCESS  Successfully hash and extend.
+ * @retval Others       Other error as indicated
+ */
 STATIC
 EFI_STATUS
-HashExtendCfvImageToVtpm (
-  UINT32  Tpm2ActivePcrBanks,
-  UINT32  PcrIndex
+HashAndExtendCfvImageToVtpm (
+  UINT32             Tpm2ActivePcrBanks,
+  UINT32             PcrIndex,
+  TPML_DIGEST_VALUES   *CfvImgHashValue
   )
 {
   EFI_STATUS          Status;
   UINTN               CfvSize;
   UINT8               *CfvImage;
-  TPML_DIGEST_VALUES  DigestList;
+
+  if (CfvImgHashValue == NULL){
+    return EFI_INVALID_PARAMETER;
+  }
+  
 
   CfvImage = (UINT8 *)(UINTN)PcdGet32 (PcdOvmfFlashNvStorageVariableBase);
   CfvSize  = (UINT64)PcdGet32 (PcdCfvRawDataSize);
 
-  Status = InitDigestList (Tpm2ActivePcrBanks, &DigestList, CfvImage, CfvSize);
+
+  ZeroMem (CfvImgHashValue, sizeof (TPML_DIGEST_VALUES));
+
+  Status = InitDigestList (Tpm2ActivePcrBanks, CfvImgHashValue, CfvImage, CfvSize);
   if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_INFO, "%a: InitDigestList failed with %r\n", __func__, Status));
     return Status;
   }
 
-  Status = Tpm2PcrExtend (PcrIndex, &DigestList);
+  Status = Tpm2PcrExtend (PcrIndex, CfvImgHashValue);
   if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_INFO, "%a: Tpm2PcrExtend failed with %r\n", __func__, Status));
   }
@@ -166,6 +220,43 @@ HashExtendCfvImageToVtpm (
   return Status;
 }
 
+
+STATIC
+EFI_STATUS
+BuildVtpmTdMeasurementDataGuidHob(
+  VTPM_TD_MEASUREMENT_DATA  *VtpmTdMeasurementData
+  )
+{
+  if (VtpmTdMeasurementData == NULL) {
+    return EFI_INVALID_PARAMETER;
+  }
+
+  VOID   *GuidHobRawData;
+
+  GuidHobRawData = BuildGuidHob (
+                                 &gEdkiiVtpmTdMeasurementDataHobGuid,
+                                 sizeof (VTPM_TD_MEASUREMENT_DATA)
+                                 );
+
+  if (GuidHobRawData == NULL) {
+    DEBUG ((DEBUG_ERROR, "%a : BuildGuidHob failed \n", __FUNCTION__));
+    return EFI_OUT_OF_RESOURCES;
+  }
+
+  CopyMem(GuidHobRawData, VtpmTdMeasurementData, sizeof (VTPM_TD_MEASUREMENT_DATA));
+
+  return EFI_SUCCESS;
+}
+
+/**
+ * Hash TdHob info and Cfv Image info and extend to PCR for vTPM.
+ *
+ * @param Tpm2ActivePcrBanks      The active pcr banks in vTPM.
+ * @param TdxMeasurementsData     The pointer of TDX_MEASUREMENTS_DATA.
+ *
+ * @retval EFI_SUCCESS  Successfully hash and extend.
+ * @retval Others       Other error as indicated
+ */
 STATIC
 EFI_STATUS
 ExtendToVTpm (
@@ -175,6 +266,11 @@ ExtendToVTpm (
 {
   UINT32  PcrIndex;
 
+  VTPM_TD_MEASUREMENT_DATA  VtpmTdMeasurementData;
+
+
+  ZeroMem(&VtpmTdMeasurementData, sizeof(VtpmTdMeasurementData));
+
   if (TdxMeasurementsData == NULL) {
     return EFI_INVALID_PARAMETER;
   }
@@ -182,15 +278,22 @@ ExtendToVTpm (
   PcrIndex = 0;
 
   if (TdxMeasurementsData->MeasurementsBitmap & TDX_MEASUREMENT_TDHOB_BITMASK) {
-    if (EFI_ERROR (HashExtendTdHobToVtpm (Tpm2ActivePcrBanks, PcrIndex))) {
+    VtpmTdMeasurementData.MeasurementsBitmap |= TDX_MEASUREMENT_TDHOB_BITMASK;
+    if (EFI_ERROR (HashAndExtendTdHobToVtpm (Tpm2ActivePcrBanks, PcrIndex, &VtpmTdMeasurementData.TdHobHashValue))) {
       return EFI_ABORTED;
     }
   }
 
   if (TdxMeasurementsData->MeasurementsBitmap & TDX_MEASUREMENT_CFVIMG_BITMASK) {
-    if (EFI_ERROR (HashExtendCfvImageToVtpm (Tpm2ActivePcrBanks, PcrIndex))) {
+    VtpmTdMeasurementData.MeasurementsBitmap |= TDX_MEASUREMENT_CFVIMG_BITMASK;
+    if (EFI_ERROR (HashAndExtendCfvImageToVtpm (Tpm2ActivePcrBanks, PcrIndex, &VtpmTdMeasurementData.CfvImgHashValue))) {
       return EFI_ABORTED;
     }
+  }
+
+  if (EFI_ERROR(BuildVtpmTdMeasurementDataGuidHob(&VtpmTdMeasurementData))) {
+    DEBUG((DEBUG_ERROR, "Build VtpmTd Measurement Data Guid Hob failed \n"));
+    return EFI_ABORTED;
   }
 
   return EFI_SUCCESS;
@@ -237,10 +340,18 @@ DoMeasurement (
   return Status;
 }
 
+/**
+ * Set Tpm2ActivePcrBanks in WorkArea when vTPM is actived.
+ *
+ * @param Tpm2ActivePcrBanks      The active pcr banks in vTPM.
+ *
+ * @retval EFI_SUCCESS  Successfully setup in WorkArea.
+ * @retval Others       Other error as indicated
+ */
 STATIC
 EFI_STATUS
-SetTdxMeasurementInWorkarea (
-  UINT32   TpmActivePcrBanks
+SetTpm2ActivePcrBanksInWorkarea (
+  UINT32  TpmActivePcrBanks
   )
 {
   OVMF_WORK_AREA  *WorkArea;
@@ -272,36 +383,38 @@ PeilessStartupDoMeasurement (
 
   do {
     if (EFI_ERROR (TdxHelperInitSharedBuffer ())) {
-      DEBUG ((DEBUG_INFO, "Init shared buffer failed.\n"));
+      DEBUG ((DEBUG_ERROR, "Init shared buffer failed.\n"));
       break;
     }
 
     SharedMemoryReady = TRUE;
 
     if (EFI_ERROR (VmmSpdmVTpmConnect ())) {
-      DEBUG ((DEBUG_INFO, "Connect to vTPM-TD failed.\n"));
+      DEBUG ((DEBUG_ERROR, "Connect to vTPM-TD failed.\n"));
       break;
     }
 
     if (EFI_ERROR (Tpm2Startup (TPM_SU_CLEAR))) {
-      DEBUG ((DEBUG_INFO, "Startup TPM2 failed.\n"));
+      DEBUG ((DEBUG_ERROR, "Startup TPM2 failed.\n"));
       break;
     }
 
     TpmActivePcrBanks = SyncPcrAllocationsAndPcrMask ();
+
+    if (EFI_ERROR (SetTpm2ActivePcrBanksInWorkarea (TpmActivePcrBanks))) {
+      DEBUG ((DEBUG_ERROR, "Set TdxMeasurement In Workarea failed.\n"));
+      break;
+    }
+
+    if (EFI_ERROR (DoMeasurement ())) {
+      DEBUG ((DEBUG_ERROR, "Do Measurement failed.\n"));
+      break;
+    }
   } while (FALSE);
 
-  if (EFI_ERROR (SetTdxMeasurementInWorkarea ( TpmActivePcrBanks))) {
-    DEBUG ((DEBUG_INFO, "Set TdxMeasurement In Workarea failed.\n"));
-  }
-
-  if (EFI_ERROR( DoMeasurement ())) {
-    DEBUG ((DEBUG_INFO, "Do Measurement failed.\n"));
-  }
-
   if (SharedMemoryReady) {
-    if (EFI_ERROR(TdxHelperDropSharedBuffer  ())) {
-        DEBUG ((DEBUG_INFO, "TdxHelperDropSharedBuffer failed\n"));
+    if (EFI_ERROR (TdxHelperDropSharedBuffer ())) {
+      DEBUG ((DEBUG_ERROR, "TdxHelperDropSharedBuffer failed\n"));
     }
   }
 
