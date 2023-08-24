@@ -522,6 +522,15 @@ VmmSpdmVTpmInitSpdmContext (
                                 VmmSpdmReleaseReceiverBuffer
                                 );
 
+  if (SpdmGetSizeofRequiredScratchBuffer(SpdmContext) > (UINTN)Context->ScratchBufferSize) {
+    DEBUG((DEBUG_ERROR, 
+                      "%a: The size of Scratch Buffer %x is less than the size in SpdmContext %x\n",
+                      __func__,
+                      (UINTN)Context->ScratchBufferSize,
+                      SpdmGetSizeofRequiredScratchBuffer(SpdmContext)));
+    return EFI_OUT_OF_RESOURCES;
+  }
+
   SpdmSetScratchBuffer (SpdmContext, Context->ScratchBuffer, (UINTN)Context->ScratchBufferSize);
 
   ZeroMem (&Parameter, sizeof (Parameter));
