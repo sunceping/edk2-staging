@@ -11,12 +11,23 @@
 
 #define VTPM_ALIGNMENT  1
 
+/**
+ * This function translates the negotiated secured_message_version to a DSP0277 version.
+ *
+ * @param  SecuredMessageVersion  The version specified in binding specification and
+ *                                  negotiated in KEY_EXCHANGE/KEY_EXCHANGE_RSP.
+ *
+ * @return The DSP0277 version specified in binding specification,
+ *         which is bound to secured_message_version.
+ */
 UINT16
 VtpmGetSpdmMessageVersion (
-  UINT16 SpdmMessageVersion
+  UINT16 SecuredMessageVersion
   )
 {
-  return SpdmMessageVersion;
+
+  /* DSP0276 uses the same version number as DSP0277 */
+  return SecuredMessageVersion;
 }
 
 /**
