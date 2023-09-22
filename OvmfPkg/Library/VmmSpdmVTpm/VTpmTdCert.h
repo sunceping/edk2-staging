@@ -28,6 +28,8 @@
 #include <openssl/x509v3.h>
 #include <openssl/objects.h>
 
+#include <crypto/evp.h>
+
 #define VTPM_TD_CERT_DEFAULT_ALLOCATION_PAGE        1
 #define VTPM_TD_CERT_CHAIN_DEFAULT_ALLOCATION_PAGE  2
 

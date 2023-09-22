@@ -351,10 +351,12 @@ GetCertKeyPairAndSaveToHob (
   Status = EFI_SUCCESS;
 ClearKeyBuffer:
   if (PubKey) {
+    ZeroMem(PubKey,PubKeySize);
     FreePool (PubKey);
   }
 
   if (PriKey) {
+    ZeroMem(PriKey,PriKeySize);
     FreePool (PriKey);
   }
 
@@ -986,8 +988,60 @@ ClearBuffer:
     FreePool (DerBytes);
   }
 
+
+  if (EcKey){
+    // would clear the prikey data
+    EC_KEY_free(EcKey);
+  }
+
   if (KeyPair) {
-    EVP_PKEY_free (KeyPair);
+    DEBUG ((DEBUG_ERROR, "[Sunce] TEST the key pair info\n", __func__));
+
+    EC_KEY *testeckey = KeyPair->legacy_cache_pkey.ec;
+    if (testeckey == NULL)
+    {
+      testeckey = KeyPair->pkey.ec;
+    }
+    if (testeckey == NULL)
+    {
+      ASSERT(false);
+    }
+
+  const BIGNUM  *ec_pbingnum;
+
+
+  ec_pbingnum = EC_KEY_get0_private_key (testeckey);
+  if (ec_pbingnum == NULL) {
+    return FALSE;
+  }
+  
+  UINT32 PriKeySize = 0;
+  if (GetEcKeySize(testeckey, FALSE, &PriKeySize) == FALSE) {
+    DEBUG ((DEBUG_ERROR, "%a: GetEcKeySize for Private key failed \n", __func__));
+      ASSERT(false);
+  }
+
+  UINT8* prikey = AllocatePool (PriKeySize);
+
+  if (prikey != NULL) {
+    ZeroMem (prikey, PriKeySize);
+    BN_bn2bin (ec_pbingnum, prikey);
+  }
+  
+  DEBUG((DEBUG_ERROR, "[TEST] print priv key info\n"));
+  VmmSpdmVTpmDumpHex(prikey,PriKeySize);
+
+  // EC_KEY_set_private_key(testeckey,NULL);
+  // DEBUG((DEBUG_ERROR, "[TEST] EC_KEY_set_private_key pass\n"));
+  EVP_PKEY_free (KeyPair);
+
+  if (prikey != NULL) {
+    ZeroMem (prikey, PriKeySize);
+    BN_bn2bin (ec_pbingnum, prikey);
+  }
+  DEBUG((DEBUG_ERROR, "[TEST] print priv key info after EVP_PKEY_free\n"));
+  VmmSpdmVTpmDumpHex(prikey,PriKeySize);  
+
   }
 
   if (Name) {
