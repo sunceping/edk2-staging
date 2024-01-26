@@ -19,6 +19,7 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #include <Guid/EventExitBootServiceFailed.h>
 #include <Guid/ImageAuthentication.h>
 #include <Guid/TpmInstance.h>
+#include <Guid/DeviceAuthentication.h>
 
 #include <Protocol/DevicePath.h>
 #include <Protocol/MpService.h>
@@ -2077,7 +2078,7 @@ MeasureVariable (
       );
   }
 
-  if (EventType == EV_EFI_VARIABLE_DRIVER_CONFIG) {
+  if (EventType == EV_EFI_VARIABLE_DRIVER_CONFIG || EventType == EV_EFI_SPDM_DEVICE_POLICY) {
     //
     // Digest is the event data (UEFI_VARIABLE_DATA)
     //
@@ -2333,7 +2334,27 @@ MeasureAllSecureVariables (
     DEBUG ((DEBUG_INFO, "Skip measuring variable %s since it's deleted\n", EFI_IMAGE_SECURITY_DATABASE2));
   }
 
-  return EFI_SUCCESS;
+  //
+  // Meaurement UEFI device signature database
+  //
+  if ((PcdGet32 (PcdTcgPfpMeasurementRevision) >= TCG_EfiSpecIDEventStruct_SPEC_ERRATA_TPM2_REV_106)
+   && PcdGet8(PcdEnableSpdmDeviceAuthAndMeasurement) == TRUE ) {
+    Status = GetVariable2 (EDKII_DEVICE_SECURITY_DATABASE, &gEdkiiDeviceSignatureDatabaseGuid, &Data, &DataSize);
+    if (Status == EFI_SUCCESS || (Status == EFI_NOT_FOUND)) {
+      Status = MeasureVariable (
+                7,
+                EV_EFI_SPDM_DEVICE_POLICY,
+                EDKII_DEVICE_SECURITY_DATABASE,
+                &gEdkiiDeviceSignatureDatabaseGuid,
+                Data,
+                DataSize
+                );
+      FreePool (Data);    
+    }
+    
+  }
+
+  return EFI_SUCCESS; 
 }
 
 /**
