@@ -341,6 +341,11 @@
 
   gEfiSecurityPkgTokenSpaceGuid.PcdCpuRngSupportedAlgorithm|{0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00}|VOID*|0x00010032
 
+  ##  Specify whether to enable the state of SPDM device authentication and measurement.<BR><BR>
+  #  If 0, Disabled .<BR>
+  #  If 1, Enabled.<BR>
+  gEfiSecurityPkgTokenSpaceGuid.PcdEnableSpdmDeviceAuthAndMeasurement|0|UINT8|0x00010033
+
 [PcdsFixedAtBuild, PcdsPatchableInModule, PcdsDynamic, PcdsDynamicEx]
   ## Image verification policy for OptionRom. Only following values are valid:<BR><BR>
   #  NOTE: Do NOT use 0x5 and 0x2 since it violates the UEFI specification and has been removed.<BR>
