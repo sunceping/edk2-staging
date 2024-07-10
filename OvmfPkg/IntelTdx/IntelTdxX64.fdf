@@ -264,6 +264,8 @@ INF SecurityPkg/Tcg/TdTcg2Dxe/TdTcg2Dxe.inf
 #
 INF SecurityPkg/Tcg/Tcg2Dxe/Tcg2Dxe.inf
 
+INF SecurityPkg/Tcg/Tcg2PlatformDxe/Tcg2PlatformDxe.inf
+
 ################################################################################
 
 [FV.NCCFV]
