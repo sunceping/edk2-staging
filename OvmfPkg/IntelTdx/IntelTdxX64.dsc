@@ -814,6 +814,8 @@
       NULL|SecurityPkg/Library/HashInstanceLibSha384/HashInstanceLibSha384.inf
   }
 
+!if $(TPM2_ENABLE) == TRUE
+!if $(VTPM_ENABLE) == TRUE
   #
   # TCG2 Measurement Protocol
   #
@@ -841,3 +843,5 @@
       !include ../VmmSpdmLibs.dsc.inc
       TpmPlatformHierarchyLib|SecurityPkg/Library/PeiDxeTpmPlatformHierarchyLib/PeiDxeTpmPlatformHierarchyLib.inf
   }
+!endif
+!endif
