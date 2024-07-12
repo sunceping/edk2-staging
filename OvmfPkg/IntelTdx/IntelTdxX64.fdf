@@ -259,12 +259,16 @@ INF  MdeModulePkg/Universal/Variable/RuntimeDxe/VariableRuntimeDxe.inf
 #
 INF SecurityPkg/Tcg/TdTcg2Dxe/TdTcg2Dxe.inf
 
+!if $(TPM2_ENABLE) == TRUE
+!if $(VTPM_ENABLE) == TRUE
 #
 # EFI_TCG2_PROTOCOL
 #
 INF SecurityPkg/Tcg/Tcg2Dxe/Tcg2Dxe.inf
 
 INF SecurityPkg/Tcg/Tcg2PlatformDxe/Tcg2PlatformDxe.inf
+!endif
+!endif
 
 ################################################################################
 
