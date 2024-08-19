@@ -805,6 +805,8 @@
       NULL|MdeModulePkg/Library/VarCheckUefiLib/VarCheckUefiLib.inf
   }
 
+!if $(TPM2_ENABLE) == FALSE
+!if $(VTPM_ENABLE) == FALSE
   #
   # Cc Measurement Protocol for Td guest
   #
@@ -813,6 +815,8 @@
       HashLib|SecurityPkg/Library/HashLibTdx/HashLibTdx.inf
       NULL|SecurityPkg/Library/HashInstanceLibSha384/HashInstanceLibSha384.inf
   }
+!endif
+!endif
 
 !if $(TPM2_ENABLE) == TRUE
 !if $(VTPM_ENABLE) == TRUE
